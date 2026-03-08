@@ -9,82 +9,492 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-analytics-compat.js"></script>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
-        :root {
-            --primary: #4361ee; --primary-dark: #3a56d4; --secondary: #7209b7; --accent: #f72585;
-            --dark: #1a1a2e; --darker: #0f0f1a; --light: #f8f9fa; --gray: #6c757d;
-            --success: #4cc9f0; --warning: #f8961e; --danger: #e63946; --card-bg: #16213e;
-            --border-radius: 12px; --shadow: 0 10px 20px rgba(0,0,0,0.2); --transition: all 0.3s ease;
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', sans-serif;
         }
-        body { background: linear-gradient(135deg, var(--darker), var(--dark)); color: var(--light); line-height: 1.6; min-height: 100vh; }
-        .container { width: 100%; max-width: 1200px; margin: 0 auto; padding: 0 20px; }
-        header { background: rgba(26,26,46,0.95); backdrop-filter: blur(10px); position: fixed; top: 0; width: 100%; z-index: 1000; border-bottom: 1px solid rgba(255,255,255,0.05); }
-        .header-container { display: flex; justify-content: space-between; align-items: center; padding: 20px 0; flex-wrap: wrap; gap: 15px; }
-        .logo { display: flex; align-items: center; gap: 12px; font-size: 1.8rem; font-weight: 700; color: white; text-decoration: none; cursor: pointer; }
-        .logo i { color: var(--accent); }
-        .logo span { background: linear-gradient(90deg, var(--accent), var(--success)); -webkit-background-clip: text; background-clip: text; color: transparent; }
-        .tg-link { display: flex; align-items: center; gap: 8px; background: #0088cc; padding: 10px 20px; border-radius: var(--border-radius); color: white; text-decoration: none; font-weight: 600; transition: var(--transition); }
-        .tg-link:hover { background: #0077b5; transform: translateY(-2px); box-shadow: var(--shadow); }
-        .user-area { display: flex; align-items: center; gap: 15px; }
-        .btn { padding: 12px 28px; border-radius: var(--border-radius); font-weight: 600; cursor: pointer; transition: var(--transition); border: none; font-size: 1rem; display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
-        .btn-primary { background: linear-gradient(135deg, var(--primary), var(--secondary)); color: white; }
-        .btn-primary:hover { transform: translateY(-3px); box-shadow: var(--shadow); }
-        .btn-outline { background: transparent; color: var(--light); border: 2px solid rgba(255,255,255,0.2); }
-        .btn-outline:hover { border-color: var(--accent); color: var(--accent); }
-        .btn-success { background: var(--success); color: var(--dark); }
-        .btn-success:hover { background: #3ab8d9; transform: translateY(-3px); }
-        .btn-danger { background: var(--danger); color: white; }
-        .btn-danger:hover { background: #c82333; transform: translateY(-3px); }
-        .btn-sm { padding: 8px 16px; font-size: 0.9rem; }
-        .section { padding: 120px 0 60px; min-height: 100vh; display: none; }
-        .section.active { display: block; }
-        .section-title { text-align: center; margin-bottom: 40px; font-size: 2.5rem; }
-        .section-title span { color: var(--accent); position: relative; }
-        .search-box { max-width: 600px; margin: 0 auto 40px; display: flex; gap: 10px; }
-        .search-box input { flex: 1; padding: 18px 25px; border-radius: 50px; border: 2px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.3); color: white; font-size: 1.1rem; transition: var(--transition); }
-        .search-box input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(67,97,238,0.2); }
-        .games-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 30px; }
-        .game-card { background: var(--card-bg); border-radius: var(--border-radius); padding: 25px; border: 1px solid rgba(255,255,255,0.05); transition: var(--transition); cursor: pointer; text-align: center; }
-        .game-card:hover { transform: translateY(-10px); border-color: var(--primary); box-shadow: var(--shadow); }
-        .game-card i { font-size: 3rem; color: var(--success); margin-bottom: 15px; }
-        .game-card h3 { font-size: 1.4rem; margin-bottom: 10px; }
-        .game-card p { color: rgba(255,255,255,0.7); font-size: 0.95rem; }
-        .back-btn { margin-bottom: 30px; }
-        .scripts-container { display: flex; flex-direction: column; gap: 20px; margin: 30px 0; }
-        .script-item { background: var(--card-bg); border-radius: var(--border-radius); padding: 20px; border: 1px solid rgba(255,255,255,0.05); position: relative; }
-        .script-meta { display: flex; justify-content: space-between; margin-bottom: 10px; color: var(--gray); font-size: 0.9rem; flex-wrap: wrap; }
-        .script-author { color: var(--success); font-weight: 600; }
-        .script-date { color: var(--gray); }
-        .script-code { background: rgba(0,0,0,0.3); padding: 15px; border-radius: 8px; overflow-x: auto; color: #0f0; font-family: 'Courier New', monospace; margin-bottom: 15px; white-space: pre-wrap; word-wrap: break-word; }
-        .script-actions { display: flex; gap: 10px; flex-wrap: wrap; }
-        .copy-script-btn { flex: 2; }
-        .report-btn { flex: 1; }
-        .comments { margin: 30px 0; }
-        .comment { background: rgba(255,255,255,0.05); border-radius: var(--border-radius); padding: 20px; margin-bottom: 15px; border-left: 3px solid var(--accent); position: relative; }
-        .comment-header { display: flex; justify-content: space-between; margin-bottom: 10px; color: var(--gray); font-size: 0.9rem; flex-wrap: wrap; }
-        .comment-name { font-weight: 600; color: var(--success); }
-        .comment-actions { margin-top: 10px; display: flex; justify-content: flex-end; }
-        .add-comment { background: var(--card-bg); border-radius: var(--border-radius); padding: 30px; border: 1px solid rgba(255,255,255,0.05); }
-        .add-comment input, .add-comment textarea { width: 100%; padding: 15px; margin-bottom: 15px; border-radius: var(--border-radius); border: 2px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.2); color: white; font-size: 1rem; transition: var(--transition); }
-        .add-comment textarea { min-height: 100px; resize: vertical; }
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 2000; justify-content: center; align-items: center; }
-        .modal.active { display: flex; }
-        .modal-content { background: var(--dark); width: 90%; max-width: 500px; border-radius: var(--border-radius); padding: 40px; position: relative; border: 1px solid rgba(255,255,255,0.05); }
-        .close-modal { position: absolute; top: 20px; right: 20px; background: none; border: none; color: var(--light); font-size: 1.5rem; cursor: pointer; }
-        .form-group { margin-bottom: 25px; }
-        .form-group label { display: block; margin-bottom: 10px; color: var(--light); font-weight: 500; }
-        .form-group input, .form-group textarea { width: 100%; padding: 15px; border-radius: var(--border-radius); border: 2px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.2); color: white; font-size: 1rem; }
-        footer { background: rgba(0,0,0,0.3); padding: 30px 0; text-align: center; border-top: 1px solid rgba(255,255,255,0.05); color: rgba(255,255,255,0.5); }
+
+        :root {
+            --primary: #4361ee;
+            --primary-dark: #3a56d4;
+            --secondary: #7209b7;
+            --accent: #f72585;
+            --dark: #1a1a2e;
+            --darker: #0f0f1a;
+            --light: #f8f9fa;
+            --gray: #6c757d;
+            --success: #4cc9f0;
+            --warning: #f8961e;
+            --danger: #e63946;
+            --card-bg: #16213e;
+            --border-radius: 12px;
+            --shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+            --transition: all 0.3s ease;
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--darker) 0%, var(--dark) 100%);
+            color: var(--light);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        header {
+            background: rgba(26, 26, 46, 0.95);
+            backdrop-filter: blur(10px);
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 1000;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .header-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 0;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: white;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .logo i {
+            color: var(--accent);
+        }
+
+        .logo span {
+            background: linear-gradient(90deg, var(--accent), var(--success));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .tg-link {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: #0088cc;
+            padding: 10px 20px;
+            border-radius: var(--border-radius);
+            color: white;
+            text-decoration: none;
+            font-weight: 600;
+            transition: var(--transition);
+        }
+
+        .tg-link:hover {
+            background: #0077b5;
+            transform: translateY(-2px);
+            box-shadow: var(--shadow);
+        }
+
+        .user-area {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .btn {
+            padding: 12px 28px;
+            border-radius: var(--border-radius);
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            border: none;
+            font-size: 1rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow);
+        }
+
+        .btn-outline {
+            background: transparent;
+            color: var(--light);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .btn-outline:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: var(--dark);
+        }
+
+        .btn-success:hover {
+            background: #3ab8d9;
+            transform: translateY(-3px);
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #c82333;
+            transform: translateY(-3px);
+        }
+
+        .btn-sm {
+            padding: 8px 16px;
+            font-size: 0.9rem;
+        }
+
+        .section {
+            padding: 120px 0 60px;
+            min-height: 100vh;
+            display: none;
+        }
+
+        .section.active {
+            display: block;
+        }
+
+        .section-title {
+            text-align: center;
+            margin-bottom: 40px;
+            font-size: 2.5rem;
+        }
+
+        .section-title span {
+            color: var(--accent);
+            position: relative;
+        }
+
+        .search-box {
+            max-width: 600px;
+            margin: 0 auto 40px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .search-box input {
+            flex: 1;
+            padding: 18px 25px;
+            border-radius: 50px;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            background: rgba(0, 0, 0, 0.3);
+            color: white;
+            font-size: 1.1rem;
+            transition: var(--transition);
+        }
+
+        .search-box input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.2);
+        }
+
+        .games-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 30px;
+        }
+
+        .game-card {
+            background: var(--card-bg);
+            border-radius: var(--border-radius);
+            padding: 25px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: var(--transition);
+            cursor: pointer;
+            text-align: center;
+        }
+
+        .game-card:hover {
+            transform: translateY(-10px);
+            border-color: var(--primary);
+            box-shadow: var(--shadow);
+        }
+
+        .game-card i {
+            font-size: 3rem;
+            color: var(--success);
+            margin-bottom: 15px;
+        }
+
+        .game-card h3 {
+            font-size: 1.4rem;
+            margin-bottom: 10px;
+        }
+
+        .game-card p {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.95rem;
+        }
+
+        .back-btn {
+            margin-bottom: 30px;
+        }
+
+        .scripts-container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            margin: 30px 0;
+        }
+
+        .script-item {
+            background: var(--card-bg);
+            border-radius: var(--border-radius);
+            padding: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            position: relative;
+        }
+
+        .script-meta {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            color: var(--gray);
+            font-size: 0.9rem;
+            flex-wrap: wrap;
+        }
+
+        .script-author {
+            color: var(--success);
+            font-weight: 600;
+        }
+
+        .script-date {
+            color: var(--gray);
+        }
+
+        .script-code {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 8px;
+            overflow-x: auto;
+            color: #0f0;
+            font-family: 'Courier New', monospace;
+            margin-bottom: 15px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .script-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .copy-script-btn {
+            flex: 2;
+        }
+
+        .report-btn {
+            flex: 1;
+        }
+
+        .comments {
+            margin: 30px 0;
+        }
+
+        .comment {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: var(--border-radius);
+            padding: 20px;
+            margin-bottom: 15px;
+            border-left: 3px solid var(--accent);
+            position: relative;
+        }
+
+        .comment-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            color: var(--gray);
+            font-size: 0.9rem;
+            flex-wrap: wrap;
+        }
+
+        .comment-name {
+            font-weight: 600;
+            color: var(--success);
+        }
+
+        .comment-actions {
+            margin-top: 10px;
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .add-comment {
+            background: var(--card-bg);
+            border-radius: var(--border-radius);
+            padding: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .add-comment input,
+        .add-comment textarea {
+            width: 100%;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: var(--border-radius);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            background: rgba(0, 0, 0, 0.2);
+            color: white;
+            font-size: 1rem;
+            transition: var(--transition);
+        }
+
+        .add-comment input:focus,
+        .add-comment textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.2);
+        }
+
+        .add-comment textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: var(--dark);
+            width: 90%;
+            max-width: 500px;
+            border-radius: var(--border-radius);
+            padding: 40px;
+            position: relative;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: none;
+            border: none;
+            color: var(--light);
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+
+        .close-modal:hover {
+            transform: rotate(90deg);
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 10px;
+            color: var(--light);
+            font-weight: 500;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 15px;
+            border-radius: var(--border-radius);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            background: rgba(0, 0, 0, 0.2);
+            color: white;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-group textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.2);
+        }
+
+        footer {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 30px 0;
+            text-align: center;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            color: rgba(255, 255, 255, 0.5);
+        }
+
         @media (max-width: 768px) {
-            .header-container { flex-direction: column; align-items: stretch; }
-            .user-area { justify-content: center; }
-            .section-title { font-size: 2rem; }
-            .search-box { flex-direction: column; }
+            .header-container {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .user-area {
+                justify-content: center;
+            }
+
+            .section-title {
+                font-size: 2rem;
+            }
+
+            .search-box {
+                flex-direction: column;
+            }
         }
     </style>
 </head>
+
 <body>
     <header>
         <div class="container header-container">
@@ -98,7 +508,7 @@
                 </a>
                 <div id="authSection">
                     <button class="btn btn-primary" onclick="loginWithGitHub()" id="loginBtn">
-                        <i class="fab fa-github"></i> Войти через GitHub
+                        <i class="fab fa-github"></i> Войти
                     </button>
                     <div id="userInfo" style="display: none; align-items: center; gap: 10px;">
                         <span><i class="fab fa-github"></i> <span id="githubUsername"></span></span>
@@ -109,42 +519,40 @@
         </div>
     </header>
 
-    <!-- Главная страница -->
+    <!-- Главная -->
     <section id="home-section" class="section active">
         <div class="container">
             <h1 class="section-title">Выбери <span>игру</span></h1>
             <div class="search-box">
-                <input type="text" id="search-input" placeholder="🔍 Поиск игры..." oninput="filterGames()">
-                <button class="btn btn-success" onclick="showAddScriptModalFromHome()" id="addScriptGlobalBtn">
+                <input type="text" id="searchInput" placeholder="🔍 Поиск игры..." onkeyup="searchGames()">
+                <button class="btn btn-success" onclick="showAddScriptModal()">
                     <i class="fas fa-plus"></i> Добавить скрипт
                 </button>
             </div>
-            <div id="games-list" class="games-grid"></div>
+            <div id="games-list" class="games-grid">
+                <!-- Игры загружаются сюда -->
+            </div>
         </div>
     </section>
 
-    <!-- Детальная страница игры -->
+    <!-- Страница игры -->
     <section id="game-section" class="section">
         <div class="container">
             <button class="btn btn-outline back-btn" onclick="showHome()">
-                <i class="fas fa-arrow-left"></i> Назад к играм
+                <i class="fas fa-arrow-left"></i> Назад
             </button>
-            <h2 id="game-title" class="section-title" style="margin-bottom: 20px;"></h2>
-            
-            <div class="add-script-btn">
-                <button class="btn btn-success" onclick="showAddScriptModalForCurrentGame()">
-                    <i class="fas fa-plus"></i> Предложить свой скрипт
-                </button>
+            <h2 id="gameTitle" class="section-title"></h2>
+
+            <div id="scriptsList" class="scripts-container">
+                <!-- Скрипты загружаются сюда -->
             </div>
 
-            <div id="scripts-list" class="scripts-container"></div>
-
-            <h3 style="margin: 40px 0 20px;">Комментарии</h3>
-            <div id="comments-list" class="comments"></div>
+            <h3>Комментарии</h3>
+            <div id="commentsList" class="comments"></div>
 
             <div class="add-comment">
-                <input type="text" id="comment-name" placeholder="Ваше имя (или оставьте пустым для Анонима)">
-                <textarea id="comment-text" placeholder="Напишите комментарий..."></textarea>
+                <input type="text" id="commentName" placeholder="Ваше имя (или Аноним)">
+                <textarea id="commentText" placeholder="Напишите комментарий..."></textarea>
                 <button class="btn btn-success" onclick="addComment()">
                     <i class="fas fa-paper-plane"></i> Отправить
                 </button>
@@ -152,24 +560,24 @@
         </div>
     </section>
 
-    <!-- Модальное окно добавления скрипта -->
+    <!-- Модалка добавления скрипта -->
     <div class="modal" id="addScriptModal">
         <div class="modal-content">
             <button class="close-modal" onclick="closeModal('addScriptModal')">&times;</button>
             <h2>Добавить скрипт</h2>
             <div class="form-group">
-                <label for="scriptGameName">Название игры</label>
-                <input type="text" id="scriptGameName" placeholder="Введите название игры" autocomplete="off">
+                <label>Название игры</label>
+                <input type="text" id="newGameName" placeholder="Введите название игры">
             </div>
             <div class="form-group">
-                <label for="gameDesc">Описание игры (если игра новая)</label>
-                <textarea id="gameDesc" placeholder="Краткое описание..."></textarea>
+                <label>Описание игры (если новая)</label>
+                <textarea id="newGameDesc" placeholder="Описание..."></textarea>
             </div>
             <div class="form-group">
-                <label for="scriptContent">Скрипт (Lua)</label>
-                <textarea id="scriptContent" placeholder="loadstring(...)"></textarea>
+                <label>Скрипт (Lua)</label>
+                <textarea id="newScriptContent" placeholder="loadstring(...)"></textarea>
             </div>
-            <button class="btn btn-success" style="width: 100%;" onclick="addUserScript()">
+            <button class="btn btn-success" onclick="addScript()" style="width: 100%;">
                 <i class="fas fa-upload"></i> Опубликовать
             </button>
         </div>
@@ -177,67 +585,56 @@
 
     <footer>
         <div class="container">
-            <p>© 2025 SWAGA SCRIPT — читы для Roblox. Не для детей до 12 лет.</p>
+            <p>© 2025 SWAGA SCRIPT — читы для Roblox</p>
         </div>
     </footer>
 
     <script>
-        // 🔥 КОНФИГ FIREBASE - ВАШ ПРОЕКТ swaga-script 🔥
+        // Firebase config
         const firebaseConfig = {
             apiKey: "AIzaSyBJn3GAs1mikK9eO87BevUEvZ7rqXG_uZ4",
             authDomain: "swaga-script.firebaseapp.com",
             projectId: "swaga-script",
             storageBucket: "swaga-script.firebasestorage.app",
             messagingSenderId: "368222431535",
-            appId: "1:368222431535:web:759fb5182eb07fe25c19da",
-            measurementId: "G-554WDP13J2"
+            appId: "1:368222431535:web:759fb5182eb07fe25c19da"
         };
 
-        // Инициализация Firebase
+        // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
-        const analytics = firebase.analytics();
         const auth = firebase.auth();
         const db = firebase.firestore();
+        const provider = new firebase.auth.GithubAuthProvider();
 
-        // Провайдер GitHub
-        const githubProvider = new firebase.auth.GithubAuthProvider();
-        githubProvider.addScope('read:user');
-
-        // Глобальные переменные
+        // Global variables
         let currentUser = null;
         let currentGameId = null;
+        let allGames = [];
 
-        // Список запрещённых слов
-        const forbiddenWords = [
-            'реклама', 'пиар', 'подпишись', 'промо', 'сука', 'бля', 'хуй', 'пизда', 'гандон',
-            'cock', 'fuck', 'shit', 'bitch', 'asshole', 'spam', 'advertisement', 'buy', 'cheap'
-        ];
+        // Запрещённые слова
+        const forbiddenWords = ['реклама', 'пиар', 'промо', 'сука', 'бля', 'хуй', 'пизда', 'fuck', 'shit', 'spam'];
 
         function containsForbidden(text) {
-            const lower = text.toLowerCase();
-            return forbiddenWords.some(word => lower.includes(word));
+            return forbiddenWords.some(word => text.toLowerCase().includes(word));
         }
 
         function escapeHtml(text) {
-            const div = document.createElement('div');
+            let div = document.createElement('div');
             div.textContent = text;
             return div.innerHTML;
         }
 
-        // Авторизация
-        window.loginWithGitHub = function() {
-            auth.signInWithPopup(githubProvider)
+        // Auth
+        window.loginWithGitHub = () => {
+            auth.signInWithPopup(provider)
                 .then(result => {
                     currentUser = result.user;
                     updateAuthUI();
                 })
-                .catch(error => {
-                    console.error(error);
-                    alert('Ошибка входа: ' + error.message);
-                });
+                .catch(error => alert('Ошибка: ' + error.message));
         };
 
-        window.logout = function() {
+        window.logout = () => {
             auth.signOut().then(() => {
                 currentUser = null;
                 updateAuthUI();
@@ -245,16 +642,13 @@
         };
 
         function updateAuthUI() {
-            const loginBtn = document.getElementById('loginBtn');
-            const userInfo = document.getElementById('userInfo');
-            const usernameSpan = document.getElementById('githubUsername');
             if (currentUser) {
-                loginBtn.style.display = 'none';
-                userInfo.style.display = 'flex';
-                usernameSpan.textContent = currentUser.displayName || currentUser.email || currentUser.uid;
+                document.getElementById('loginBtn').style.display = 'none';
+                document.getElementById('userInfo').style.display = 'flex';
+                document.getElementById('githubUsername').textContent = currentUser.displayName || currentUser.email;
             } else {
-                loginBtn.style.display = 'inline-flex';
-                userInfo.style.display = 'none';
+                document.getElementById('loginBtn').style.display = 'inline-flex';
+                document.getElementById('userInfo').style.display = 'none';
             }
         }
 
@@ -263,31 +657,33 @@
             updateAuthUI();
         });
 
-        // Загрузка всех игр из Firestore
+        // Load games
         async function loadGames() {
-            const snapshot = await db.collection('games').orderBy('name').get();
-            return snapshot.docs.map(doc => ({ 
-                id: doc.id, // ВАЖНО: используем document.id
-                ...doc.data() 
-            }));
+            try {
+                const snapshot = await db.collection('games').get();
+                allGames = snapshot.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data()
+                }));
+                displayGames(allGames);
+            } catch (error) {
+                console.error('Error loading games:', error);
+            }
         }
 
-        // Отображение игр на главной
-        async function renderGames() {
-            console.log("🔄 Загрузка списка игр...");
-            const games = await loadGames();
-            console.log("📊 Игр загружено:", games.length);
-            
+        function displayGames(games) {
             const container = document.getElementById('games-list');
             container.innerHTML = '';
             
+            if (games.length === 0) {
+                container.innerHTML = '<p style="text-align: center;">Пока нет игр. Добавьте первую!</p>';
+                return;
+            }
+
             games.forEach(game => {
                 const card = document.createElement('div');
                 card.className = 'game-card';
-                card.onclick = () => {
-                    console.log("🖱️ Клик по игре:", game.name, "ID:", game.id);
-                    showGame(game.id);
-                };
+                card.onclick = () => showGame(game.id);
                 card.innerHTML = `
                     <i class="fas fa-gamepad"></i>
                     <h3>${escapeHtml(game.name)}</h3>
@@ -297,320 +693,180 @@
             });
         }
 
-        // Фильтрация игр
-        window.filterGames = async function() {
-            const query = document.getElementById('search-input').value.toLowerCase();
-            const games = await loadGames();
-            const filtered = games.filter(g => g.name.toLowerCase().includes(query));
-            
-            const container = document.getElementById('games-list');
-            container.innerHTML = '';
-            
-            filtered.forEach(game => {
-                const card = document.createElement('div');
-                card.className = 'game-card';
-                card.onclick = () => {
-                    console.log("🖱️ Клик по игре:", game.name, "ID:", game.id);
-                    showGame(game.id);
-                };
-                card.innerHTML = `
-                    <i class="fas fa-gamepad"></i>
-                    <h3>${escapeHtml(game.name)}</h3>
-                    <p>${escapeHtml(game.desc || '')}</p>
-                `;
-                container.appendChild(card);
-            });
+        window.searchGames = () => {
+            const query = document.getElementById('searchInput').value.toLowerCase();
+            const filtered = allGames.filter(g => g.name.toLowerCase().includes(query));
+            displayGames(filtered);
         };
 
-        // Показать главную страницу
-        window.showHome = function() {
+        // Show game
+        window.showGame = async (gameId) => {
+            console.log('Opening game:', gameId);
+            currentGameId = gameId;
+
+            try {
+                const gameDoc = await db.collection('games').doc(gameId).get();
+                if (!gameDoc.exists) {
+                    alert('Игра не найдена');
+                    return;
+                }
+
+                document.getElementById('gameTitle').textContent = gameDoc.data().name;
+
+                // Load scripts
+                const scriptsSnapshot = await db.collection('scripts').where('gameId', '==', gameId).get();
+                const scriptsContainer = document.getElementById('scriptsList');
+
+                if (scriptsSnapshot.empty) {
+                    scriptsContainer.innerHTML = '<p style="text-align: center;">Скриптов пока нет. Добавьте свой!</p>';
+                } else {
+                    let html = '';
+                    scriptsSnapshot.forEach(doc => {
+                        const script = doc.data();
+                        const content = escapeHtml(script.content);
+                        html += `
+                            <div class="script-item">
+                                <div class="script-meta">
+                                    <span class="script-author">${escapeHtml(script.author || 'Аноним')}</span>
+                                </div>
+                                <pre class="script-code">${content}</pre>
+                                <button class="btn btn-primary copy-script-btn" onclick="copyScript('${content.replace(/'/g, "\\'")}')">
+                                    <i class="fas fa-copy"></i> Копировать
+                                </button>
+                            </div>
+                        `;
+                    });
+                    scriptsContainer.innerHTML = html;
+                }
+
+                // Load comments
+                const commentsSnapshot = await db.collection('comments').where('gameId', '==', gameId).get();
+                const commentsContainer = document.getElementById('commentsList');
+
+                if (commentsSnapshot.empty) {
+                    commentsContainer.innerHTML = '<p>Комментариев нет</p>';
+                } else {
+                    let html = '';
+                    commentsSnapshot.forEach(doc => {
+                        const comment = doc.data();
+                        html += `
+                            <div class="comment">
+                                <div class="comment-header">
+                                    <span class="comment-name">${escapeHtml(comment.name || 'Аноним')}</span>
+                                </div>
+                                <div class="comment-text">${escapeHtml(comment.text)}</div>
+                            </div>
+                        `;
+                    });
+                    commentsContainer.innerHTML = html;
+                }
+
+                // Switch section
+                document.getElementById('home-section').classList.remove('active');
+                document.getElementById('game-section').classList.add('active');
+
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Ошибка: ' + error.message);
+            }
+        };
+
+        window.showHome = () => {
             document.getElementById('home-section').classList.add('active');
             document.getElementById('game-section').classList.remove('active');
             currentGameId = null;
-            renderGames();
         };
 
-        // Показать страницу игры
-        async function showGame(gameId) {
-            console.log("🟢 Открываем игру с ID:", gameId);
-            currentGameId = gameId;
-            
-            try {
-                // Получаем данные игры
-                const gameDoc = await db.collection('games').doc(gameId).get();
-                
-                if (!gameDoc.exists) {
-                    console.error("❌ Игра не найдена!");
-                    alert("Ошибка: игра не найдена в базе данных");
-                    return;
-                }
-                
-                const game = gameDoc.data();
-                console.log("✅ Игра загружена:", game.name);
-                document.getElementById('game-title').innerText = game.name;
-
-                // Загружаем скрипты для ЭТОЙ игры
-                console.log("🔍 Ищем скрипты с gameId =", gameId);
-                const scriptsSnapshot = await db.collection('scripts')
-                    .where('gameId', '==', gameId)
-                    .orderBy('createdAt', 'desc')
-                    .get();
-                
-                console.log("📊 Найдено скриптов:", scriptsSnapshot.size);
-                
-                const scripts = scriptsSnapshot.docs.map(doc => {
-                    const data = doc.data();
-                    return { id: doc.id, ...data };
-                });
-                
-                // Отрисовываем скрипты
-                renderScripts(scripts);
-
-                // Загружаем комментарии
-                const commentsSnapshot = await db.collection('comments')
-                    .where('gameId', '==', gameId)
-                    .orderBy('createdAt', 'desc')
-                    .get();
-                const comments = commentsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                renderComments(comments);
-
-                // Переключаем секции
-                document.getElementById('home-section').classList.remove('active');
-                document.getElementById('game-section').classList.add('active');
-                
-                console.log("✅ Страница игры успешно открыта");
-                
-            } catch (error) {
-                console.error("❌ Ошибка при открытии игры:", error);
-                alert("Ошибка: " + error.message);
-            }
-        }
-
-        // Отображение скриптов
-        function renderScripts(scripts) {
-            const container = document.getElementById('scripts-list');
-            
-            if (!scripts || scripts.length === 0) {
-                container.innerHTML = '<p style="text-align: center; color: var(--gray);">Скриптов пока нет. Добавьте свой!</p>';
-                return;
-            }
-            
-            container.innerHTML = scripts.map(script => {
-                // Безопасно экранируем содержимое для вставки в HTML
-                const scriptContent = escapeHtml(script.content);
-                const scriptContentForCopy = script.content.replace(/'/g, "\\'").replace(/"/g, '&quot;');
-                
-                return `
-                <div class="script-item" data-id="${script.id}">
-                    <div class="script-meta">
-                        <span class="script-author"><i class="fas fa-user"></i> ${escapeHtml(script.author || 'Аноним')}</span>
-                        <span class="script-date">${script.createdAt ? new Date(script.createdAt.toDate()).toLocaleString() : 'недавно'}</span>
-                    </div>
-                    <pre class="script-code">${scriptContent}</pre>
-                    <div class="script-actions">
-                        <button class="btn btn-primary copy-script-btn" onclick="copyScript('${scriptContentForCopy}')">
-                            <i class="fas fa-copy"></i> Копировать
-                        </button>
-                        <button class="btn btn-danger report-btn" onclick="reportScript('${script.id}')">
-                            <i class="fas fa-flag"></i> Пожаловаться
-                        </button>
-                    </div>
-                </div>
-            `}).join('');
-        }
-
-        // Копирование скрипта
-        window.copyScript = function(scriptText) {
-            navigator.clipboard.writeText(scriptText).then(() => {
-                alert('✅ Скрипт скопирован!');
-            }).catch(() => {
-                alert('❌ Не удалось скопировать, выделите текст вручную.');
-            });
-        };
-
-        // Жалоба на скрипт
-        window.reportScript = async function(scriptId) {
+        // Add script
+        window.showAddScriptModal = () => {
             if (!currentUser) {
-                alert('Чтобы пожаловаться, войдите через GitHub.');
+                alert('Нужно войти через GitHub');
                 return;
             }
-            try {
-                await db.collection('reports').add({
-                    type: 'script',
-                    targetId: scriptId,
-                    userId: currentUser.uid,
-                    userName: currentUser.displayName || currentUser.email,
-                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
-                });
-                alert('✅ Жалоба отправлена администрации.');
-            } catch (e) {
-                alert('Ошибка при отправке жалобы.');
-            }
-        };
-
-        // Жалоба на комментарий
-        window.reportComment = async function(commentId) {
-            if (!currentUser) {
-                alert('Чтобы пожаловаться, войдите через GitHub.');
-                return;
-            }
-            try {
-                await db.collection('reports').add({
-                    type: 'comment',
-                    targetId: commentId,
-                    userId: currentUser.uid,
-                    userName: currentUser.displayName || currentUser.email,
-                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
-                });
-                alert('✅ Жалоба отправлена администрации.');
-            } catch (e) {
-                alert('Ошибка при отправке жалобы.');
-            }
-        };
-
-        // Показать модалку добавления скрипта (с главной)
-        window.showAddScriptModalFromHome = function() {
-            if (!currentUser) {
-                alert('Для добавления скрипта необходимо войти через GitHub.');
-                return;
-            }
-            document.getElementById('scriptGameName').value = '';
-            document.getElementById('gameDesc').value = '';
-            document.getElementById('scriptContent').value = '';
             document.getElementById('addScriptModal').classList.add('active');
         };
 
-        // Показать модалку добавления скрипта (со страницы игры)
-        window.showAddScriptModalForCurrentGame = function() {
-            if (!currentUser) {
-                alert('Для добавления скрипта необходимо войти через GitHub.');
-                return;
-            }
-            
-            if (currentGameId) {
-                // Если текущая игра известна, подставляем её название
-                db.collection('games').doc(currentGameId).get().then(doc => {
-                    if (doc.exists) {
-                        document.getElementById('scriptGameName').value = doc.data().name;
-                    }
-                });
-            } else {
-                document.getElementById('scriptGameName').value = '';
-            }
-            
-            document.getElementById('gameDesc').value = '';
-            document.getElementById('scriptContent').value = '';
-            document.getElementById('addScriptModal').classList.add('active');
+        window.closeModal = (id) => {
+            document.getElementById(id).classList.remove('active');
         };
 
-        // Закрыть модалку
-        window.closeModal = function(modalId) {
-            document.getElementById(modalId).classList.remove('active');
-        };
-
-        // Добавление скрипта
-        window.addUserScript = async function() {
+        window.addScript = async () => {
             if (!currentUser) return;
 
-            const gameName = document.getElementById('scriptGameName').value.trim();
-            const gameDesc = document.getElementById('gameDesc').value.trim();
-            const scriptContent = document.getElementById('scriptContent').value.trim();
+            const gameName = document.getElementById('newGameName').value.trim();
+            const gameDesc = document.getElementById('newGameDesc').value.trim();
+            const scriptContent = document.getElementById('newScriptContent').value.trim();
 
             if (!gameName || !scriptContent) {
-                alert('Заполните название игры и текст скрипта.');
+                alert('Заполните название игры и скрипт');
                 return;
             }
 
-            if (containsForbidden(gameName) || containsForbidden(gameDesc) || containsForbidden(scriptContent)) {
-                alert('Обнаружены запрещённые слова (мат, реклама и т.п.). Публикация невозможна.');
+            if (containsForbidden(gameName) || containsForbidden(scriptContent)) {
+                alert('Обнаружены запрещённые слова');
                 return;
             }
 
             try {
-                // Ищем игру по названию
-                const gamesRef = db.collection('games');
-                const snapshot = await gamesRef.where('name', '==', gameName).get();
-                
+                // Find or create game
                 let gameId;
-                if (snapshot.empty) {
-                    // Создаём новую игру
-                    const newGame = await gamesRef.add({
+                const gamesSnapshot = await db.collection('games').where('name', '==', gameName).get();
+
+                if (gamesSnapshot.empty) {
+                    const newGame = await db.collection('games').add({
                         name: gameName,
-                        desc: gameDesc || 'Описание отсутствует',
+                        desc: gameDesc || 'Без описания',
                         createdAt: firebase.firestore.FieldValue.serverTimestamp()
                     });
                     gameId = newGame.id;
-                    console.log("🆕 Создана новая игра с ID:", gameId);
                 } else {
-                    gameId = snapshot.docs[0].id;
-                    console.log("📌 Найдена существующая игра с ID:", gameId);
+                    gameId = gamesSnapshot.docs[0].id;
                 }
 
-                // Добавляем скрипт
+                // Add script
                 await db.collection('scripts').add({
-                    gameId: gameId, // ВАЖНО: используем правильный ID игры
+                    gameId: gameId,
                     content: scriptContent,
                     author: currentUser.displayName || currentUser.email,
-                    authorUid: currentUser.uid,
                     createdAt: firebase.firestore.FieldValue.serverTimestamp()
                 });
 
-                alert('✅ Скрипт успешно добавлен!');
+                alert('✅ Скрипт добавлен!');
                 closeModal('addScriptModal');
+                
+                // Clear form
+                document.getElementById('newGameName').value = '';
+                document.getElementById('newGameDesc').value = '';
+                document.getElementById('newScriptContent').value = '';
 
-                // Если мы на странице этой игры, обновим её
+                // Reload games
+                loadGames();
+
+                // If we're on that game, show it
                 if (currentGameId === gameId) {
                     showGame(gameId);
-                } else {
-                    showHome();
                 }
-            } catch (e) {
-                console.error('❌ Ошибка при добавлении:', e);
-                alert('Ошибка при сохранении. Попробуйте ещё раз.');
+
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Ошибка: ' + error.message);
             }
         };
 
-        // Отображение комментариев
-        function renderComments(comments) {
-            const container = document.getElementById('comments-list');
-            if (!comments || comments.length === 0) {
-                container.innerHTML = '<p style="text-align: center; color: var(--gray);">Пока нет комментариев. Будьте первым!</p>';
-                return;
-            }
-            
-            container.innerHTML = comments.map(c => `
-                <div class="comment" data-id="${c.id}">
-                    <div class="comment-header">
-                        <span class="comment-name">${escapeHtml(c.name || 'Аноним')}</span>
-                        <span>${c.createdAt ? new Date(c.createdAt.toDate()).toLocaleString() : 'недавно'}</span>
-                    </div>
-                    <div class="comment-text">${escapeHtml(c.text)}</div>
-                    <div class="comment-actions">
-                        <button class="btn btn-danger btn-sm" onclick="reportComment('${c.id}')">
-                            <i class="fas fa-flag"></i> Пожаловаться
-                        </button>
-                    </div>
-                </div>
-            `).join('');
-        }
+        // Add comment
+        window.addComment = async () => {
+            if (!currentGameId) return;
 
-        // Добавление комментария
-        window.addComment = async function() {
-            if (!currentGameId) {
-                alert('Ошибка: игра не выбрана');
-                return;
-            }
-            
-            const name = document.getElementById('comment-name').value.trim() || 'Аноним';
-            const text = document.getElementById('comment-text').value.trim();
-            
+            const name = document.getElementById('commentName').value.trim() || 'Аноним';
+            const text = document.getElementById('commentText').value.trim();
+
             if (!text) {
                 alert('Введите комментарий');
                 return;
             }
 
             if (containsForbidden(name) || containsForbidden(text)) {
-                alert('Обнаружены запрещённые слова. Комментарий не будет опубликован.');
+                alert('Запрещённые слова');
                 return;
             }
 
@@ -621,50 +877,40 @@
                     text: text,
                     createdAt: firebase.firestore.FieldValue.serverTimestamp()
                 });
-                
-                // Очищаем поля
-                document.getElementById('comment-name').value = '';
-                document.getElementById('comment-text').value = '';
-                
-                // Обновляем комментарии
-                const commentsSnapshot = await db.collection('comments')
-                    .where('gameId', '==', currentGameId)
-                    .orderBy('createdAt', 'desc')
-                    .get();
-                const comments = commentsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                renderComments(comments);
-                
-            } catch (e) {
-                console.error('❌ Ошибка при добавлении комментария:', e);
-                alert('Ошибка при отправке комментария.');
+
+                document.getElementById('commentName').value = '';
+                document.getElementById('commentText').value = '';
+
+                // Reload comments
+                const commentsSnapshot = await db.collection('comments').where('gameId', '==', currentGameId).get();
+                let html = '';
+                commentsSnapshot.forEach(doc => {
+                    const comment = doc.data();
+                    html += `
+                        <div class="comment">
+                            <div class="comment-header">
+                                <span class="comment-name">${escapeHtml(comment.name || 'Аноним')}</span>
+                            </div>
+                            <div class="comment-text">${escapeHtml(comment.text)}</div>
+                        </div>
+                    `;
+                });
+                document.getElementById('commentsList').innerHTML = html;
+
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Ошибка: ' + error.message);
             }
         };
 
-        // Инициализация при загрузке страницы
-        (async function init() {
-            console.log("🚀 Запуск SWAGA SCRIPT");
-            await renderGames();
-            
-            // Для отладки: показываем все игры и скрипты в консоли
-            setTimeout(async () => {
-                console.log("=== 🔍 ОТЛАДОЧНАЯ ИНФОРМАЦИЯ ===");
-                
-                const games = await db.collection('games').get();
-                console.log("📌 Игры в базе:");
-                games.forEach(doc => {
-                    console.log(`   - ${doc.data().name} (ID: ${doc.id})`);
-                });
-                
-                const scripts = await db.collection('scripts').get();
-                console.log("📌 Скрипты в базе:");
-                scripts.forEach(doc => {
-                    const data = doc.data();
-                    console.log(`   - Для игры ID: ${data.gameId} | Автор: ${data.author}`);
-                });
-                
-                console.log("=== 🔍 КОНЕЦ ОТЛАДКИ ===");
-            }, 2000);
-        })();
+        window.copyScript = (text) => {
+            navigator.clipboard.writeText(text).then(() => {
+                alert('✅ Скопировано!');
+            });
+        };
+
+        // Initialize
+        loadGames();
     </script>
 </body>
 </html>

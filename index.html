@@ -251,6 +251,11 @@
             text-align: center;
             margin-bottom: 25px;
             font-size: 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
         }
 
         .section-title span {
@@ -873,7 +878,14 @@
             <button class="btn btn-outline back-btn" onclick="showHome()">
                 <i class="fas fa-arrow-left"></i> Назад
             </button>
-            <h2 id="gameTitle" class="section-title"></h2>
+            <h2 id="gameTitle" class="section-title">
+                <span id="gameNameSpan"></span>
+                <span id="gameAdminControls" style="display: none;">
+                    <button class="btn btn-danger" onclick="promptDeleteGame()">
+                        <i class="fas fa-trash"></i> Удалить игру
+                    </button>
+                </span>
+            </h2>
 
             <div id="scriptsList" class="scripts-container"></div>
 
@@ -999,7 +1011,7 @@
         let allGames = [];
         let allComments = [];
         let commentsExpanded = false;
-        let deleteTarget = null;
+        let deleteTarget = null; // { type: 'script'|'comment'|'game', id: '...' }
         const ADMIN_USERNAME = 'talisov';
 
         const forbiddenWords = ['реклама', 'пиар', 'промо', 'сука', 'бля', 'хуй', 'пизда', 'fuck', 'shit', 'spam'];
@@ -1234,6 +1246,14 @@
             }
         }
 
+        // Удаление игры (админ)
+        window.promptDeleteGame = () => {
+            if (!isAdmin()) return;
+            deleteTarget = { type: 'game', id: currentGameId };
+            document.getElementById('confirmMessage').textContent = 'Вы уверены, что хотите удалить эту игру? Все скрипты и комментарии будут также удалены.';
+            document.getElementById('confirmModal').classList.add('active');
+        };
+
         window.deleteScript = async (scriptId) => {
             if (!isAdmin()) {
                 alert('Только администратор может удалять скрипты');
@@ -1264,13 +1284,51 @@
                     await db.collection('scripts').doc(deleteTarget.id).delete();
                 } else if (deleteTarget.type === 'comment') {
                     await db.collection('comments').doc(deleteTarget.id).delete();
+                } else if (deleteTarget.type === 'game') {
+                    // Удаляем игру и всё связанное
+                    const gameId = deleteTarget.id;
+                    
+                    // Получаем все скрипты этой игры
+                    const scriptsSnapshot = await db.collection('scripts').where('gameId', '==', gameId).get();
+                    const scriptIds = scriptsSnapshot.docs.map(doc => doc.id);
+                    
+                    // Удаляем все комментарии этой игры
+                    const commentsSnapshot = await db.collection('comments').where('gameId', '==', gameId).get();
+                    const batch = db.batch();
+                    
+                    commentsSnapshot.docs.forEach(doc => {
+                        batch.delete(doc.ref);
+                    });
+                    
+                    // Удаляем все скрипты
+                    scriptsSnapshot.docs.forEach(doc => {
+                        batch.delete(doc.ref);
+                    });
+                    
+                    // Удаляем все оценки, связанные с этими скриптами
+                    for (const scriptId of scriptIds) {
+                        const ratingsSnapshot = await db.collection('ratings').where('scriptId', '==', scriptId).get();
+                        ratingsSnapshot.docs.forEach(doc => {
+                            batch.delete(doc.ref);
+                        });
+                    }
+                    
+                    // Удаляем саму игру
+                    batch.delete(db.collection('games').doc(gameId));
+                    
+                    await batch.commit();
+                    
+                    // Возвращаемся на главную
+                    showHome();
                 }
                 
                 closeModal('confirmModal');
                 deleteTarget = null;
                 
-                if (currentGameId) {
+                if (currentGameId && deleteTarget?.type !== 'game') {
                     showGame(currentGameId);
+                } else {
+                    loadGames();
                 }
                 
             } catch (error) {
@@ -1410,7 +1468,9 @@
                     return;
                 }
 
-                document.getElementById('gameTitle').textContent = gameDoc.data().name;
+                const gameData = gameDoc.data();
+                document.getElementById('gameNameSpan').textContent = gameData.name;
+                document.getElementById('gameAdminControls').style.display = isAdmin() ? 'inline-block' : 'none';
 
                 const scriptsSnapshot = await db.collection('scripts')
                     .where('gameId', '==', gameId)
@@ -1548,6 +1608,7 @@
             document.getElementById('home-section').classList.add('active');
             document.getElementById('game-section').classList.remove('active');
             currentGameId = null;
+            loadGames();
         };
 
         window.showAddScriptModal = () => {

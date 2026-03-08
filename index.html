@@ -413,6 +413,17 @@
             background: rgba(230, 57, 70, 0.2);
         }
 
+        .script-description {
+            background: rgba(255, 255, 255, 0.03);
+            padding: 10px 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            color: var(--light);
+            font-style: italic;
+            border-left: 3px solid var(--accent);
+            font-size: 0.95rem;
+        }
+
         .script-code {
             background: rgba(0, 0, 0, 0.3);
             padding: 12px;
@@ -618,7 +629,6 @@
             resize: vertical;
         }
 
-        /* Чаты */
         .chat-section {
             display: flex;
             height: calc(100vh - 140px);
@@ -849,7 +859,7 @@
             color: var(--success);
         }
 
-        .footer {
+        footer {
             background: rgba(0, 0, 0, 0.3);
             padding: 20px 0;
             text-align: center;
@@ -1111,7 +1121,11 @@
             </div>
             <div class="form-group">
                 <label>Описание игры (если новая)</label>
-                <textarea id="newGameDesc" placeholder="Описание..."></textarea>
+                <textarea id="newGameDesc" placeholder="Описание игры..."></textarea>
+            </div>
+            <div class="form-group">
+                <label>Описание скрипта (необязательно)</label>
+                <textarea id="scriptDesc" placeholder="Что делает этот скрипт, особенности..."></textarea>
             </div>
             <div class="form-group">
                 <label>Скрипт (Lua)</label>
@@ -1200,22 +1214,19 @@
         const db = firebase.firestore();
         const provider = new firebase.auth.GithubAuthProvider();
 
-        // Глобальные переменные
         let currentUser = null;
         let currentUserData = null;
         let currentGameId = null;
         let allGames = [];
         let allComments = [];
         let commentsExpanded = false;
-        let deleteTarget = null; // { type: 'script'|'comment'|'game', id: '...' }
+        let deleteTarget = null;
         const ADMIN_USERNAME = 'talisov';
-        const COOLDOWN_TIME = 5 * 60 * 1000; // 5 минут в миллисекундах
+        const COOLDOWN_TIME = 5 * 60 * 1000;
 
-        // Для чата
         let selectedUserId = null;
         let messagesListener = null;
         let allUsers = [];
-        let conversations = [];
 
         const forbiddenWords = ['реклама', 'пиар', 'промо', 'сука', 'бля', 'хуй', 'пизда', 'fuck', 'shit', 'spam'];
 
@@ -1299,7 +1310,6 @@
             }
         });
 
-        // Проверка кулдауна
         async function checkCooldown(actionType) {
             if (!currentUser) return { allowed: false, message: 'Необходимо войти' };
             
@@ -1321,7 +1331,6 @@
             return { allowed: true };
         }
 
-        // Обновление кулдауна
         async function updateCooldown(actionType) {
             if (!currentUser) return;
             const cooldownRef = db.collection('cooldowns').doc(`${currentUser.uid}_${actionType}`);
@@ -1330,7 +1339,6 @@
             });
         }
 
-        // Проверка уникальности никнейма
         async function isNicknameUnique(nickname, excludeUid = null) {
             const snapshot = await db.collection('users').where('nickname', '==', nickname).get();
             if (snapshot.empty) return true;
@@ -1349,7 +1357,6 @@
         };
 
         window.logout = () => {
-            // Отписываемся от сообщений
             if (messagesListener) messagesListener();
             auth.signOut().then(() => {
                 currentUser = null;
@@ -1380,7 +1387,6 @@
                 return;
             }
 
-            // Проверка уникальности
             const isUnique = await isNicknameUnique(newNickname, currentUser.uid);
             if (!isUnique) {
                 alert('Этот никнейм уже занят другим пользователем');
@@ -1446,7 +1452,6 @@
             updateAuthUI();
         });
 
-        // Загрузка игр
         async function loadGames() {
             try {
                 const snapshot = await db.collection('games').get();
@@ -1499,7 +1504,6 @@
             }
         }
 
-        // Удаление игры (админ)
         window.promptDeleteGame = () => {
             if (!isAdmin()) return;
             deleteTarget = { type: 'game', id: currentGameId };
@@ -1744,6 +1748,7 @@
                     
                     for (const script of scripts) {
                         const content = escapeHtml(script.content);
+                        const scriptDesc = script.scriptDesc ? escapeHtml(script.scriptDesc) : '';
                         
                         let authorName = 'Аноним';
                         if (script.author) {
@@ -1791,6 +1796,7 @@
                                         ` : ''}
                                     </div>
                                 </div>
+                                ${scriptDesc ? `<div class="script-description">📝 ${scriptDesc}</div>` : ''}
                                 <pre class="script-code">${content}</pre>
                                 <div class="rating-container">
                                     <div class="rating-buttons">
@@ -1873,6 +1879,7 @@
             }
             document.getElementById('addScriptModal').classList.add('active');
             document.getElementById('scriptCooldownMsg').innerHTML = '';
+            document.getElementById('scriptDesc').value = '';
         };
 
         window.closeModal = (id) => {
@@ -1882,7 +1889,6 @@
         window.addScript = async () => {
             if (!currentUser) return;
 
-            // Проверка кулдауна
             const cooldown = await checkCooldown('script');
             if (!cooldown.allowed) {
                 document.getElementById('scriptCooldownMsg').innerHTML = cooldown.message;
@@ -1891,6 +1897,7 @@
 
             const gameName = document.getElementById('newGameName').value.trim();
             const gameDesc = document.getElementById('newGameDesc').value.trim();
+            const scriptDesc = document.getElementById('scriptDesc').value.trim();
             const scriptContent = document.getElementById('newScriptContent').value.trim();
 
             if (!gameName || !scriptContent) {
@@ -1898,7 +1905,7 @@
                 return;
             }
 
-            if (containsForbidden(gameName) || containsForbidden(scriptContent)) {
+            if (containsForbidden(gameName) || containsForbidden(scriptDesc) || containsForbidden(scriptContent)) {
                 alert('Обнаружены запрещённые слова');
                 return;
             }
@@ -1908,7 +1915,6 @@
                 const gamesSnapshot = await db.collection('games').where('name', '==', gameName).get();
 
                 if (gamesSnapshot.empty) {
-                    // Создание новой игры тоже требует кулдаун
                     const gameCooldown = await checkCooldown('game');
                     if (!gameCooldown.allowed) {
                         document.getElementById('scriptCooldownMsg').innerHTML = gameCooldown.message;
@@ -1931,6 +1937,7 @@
                 await db.collection('scripts').add({
                     gameId: gameId,
                     content: scriptContent,
+                    scriptDesc: scriptDesc || null,
                     author: authorName,
                     authorUid: currentUser.uid,
                     likes: 0,
@@ -1946,6 +1953,7 @@
                 
                 document.getElementById('newGameName').value = '';
                 document.getElementById('newGameDesc').value = '';
+                document.getElementById('scriptDesc').value = '';
                 document.getElementById('newScriptContent').value = '';
 
                 loadGames();
@@ -1963,7 +1971,6 @@
         window.addComment = async () => {
             if (!currentGameId) return;
 
-            // Проверка кулдауна
             const cooldown = await checkCooldown('comment');
             if (!cooldown.allowed) {
                 document.getElementById('commentCooldownMsg').innerHTML = cooldown.message;
@@ -2012,15 +2019,14 @@
             });
         };
 
-        // ==================== ЧАТ ====================
-
+        // Чат
         async function loadUsers() {
             if (!currentUser) return;
             try {
                 const snapshot = await db.collection('users').get();
                 allUsers = snapshot.docs
                     .map(doc => ({ uid: doc.id, ...doc.data() }))
-                    .filter(u => u.uid !== currentUser.uid); // исключаем себя
+                    .filter(u => u.uid !== currentUser.uid);
                 displayUsers(allUsers);
             } catch (error) {
                 console.error('Error loading users:', error);
@@ -2046,7 +2052,6 @@
                 `;
             }).join('');
             
-            // Загрузить последние сообщения для отображения в списке
             users.forEach(user => loadLastMessage(user.uid));
         }
 
@@ -2080,9 +2085,7 @@
         window.selectUser = async (userId, displayName) => {
             if (!currentUser) return;
             
-            // Убираем выделение со всех
             document.querySelectorAll('.chat-user-item').forEach(el => el.classList.remove('active'));
-            // Выделяем выбранного
             const selectedEl = Array.from(document.querySelectorAll('.chat-user-item')).find(el => 
                 el.getAttribute('onclick')?.includes(`'${userId}'`)
             );
@@ -2093,7 +2096,6 @@
             document.getElementById('noChatSelected').style.display = 'none';
             document.getElementById('chatInputArea').style.display = 'flex';
             
-            // Загружаем сообщения
             await loadMessages(userId);
         };
 
@@ -2102,7 +2104,6 @@
             
             const conversationId = [currentUser.uid, otherUserId].sort().join('_');
             
-            // Отписываемся от предыдущего слушателя
             if (messagesListener) messagesListener();
             
             const messagesRef = db.collection('messages')
@@ -2147,7 +2148,6 @@
                     read: false
                 });
                 input.value = '';
-                // Обновим последнее сообщение в списке
                 loadLastMessage(selectedUserId);
             } catch (error) {
                 console.error('Error sending message:', error);
@@ -2171,9 +2171,7 @@
                 alert('Пользователь анонимен, нельзя начать чат');
                 return;
             }
-            // Переключаемся на чат и выбираем этого пользователя
             showChat();
-            // Небольшая задержка для загрузки списка пользователей
             setTimeout(() => {
                 selectUser(uid, name);
             }, 500);

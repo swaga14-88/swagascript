@@ -40,7 +40,7 @@
             color: var(--light);
             line-height: 1.6;
             min-height: 100vh;
-            padding-top: 70px; /* Отступ для фиксированной шапки */
+            padding-top: 70px;
         }
 
         .container {
@@ -50,7 +50,7 @@
             padding: 0 15px;
         }
 
-        /* Исправленная мобильная шапка */
+        /* Шапка */
         header {
             background: rgba(15, 15, 26, 0.98);
             backdrop-filter: blur(10px);
@@ -112,10 +112,6 @@
             white-space: nowrap;
         }
 
-        .tg-link i {
-            font-size: 1rem;
-        }
-
         .user-area {
             display: flex;
             align-items: center;
@@ -123,9 +119,9 @@
             position: relative;
         }
 
+        /* Исправленное меню - по клику */
         .user-menu {
             position: relative;
-            cursor: pointer;
         }
 
         .user-name {
@@ -138,7 +134,12 @@
             gap: 5px;
             font-size: 0.9rem;
             white-space: nowrap;
-            max-width: 150px;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .user-name:hover {
+            background: rgba(255, 255, 255, 0.1);
         }
 
         .user-name i {
@@ -167,7 +168,7 @@
             z-index: 1000;
         }
 
-        .user-menu:hover .user-dropdown {
+        .user-dropdown.show {
             display: block;
         }
 
@@ -229,11 +230,6 @@
             transform: translateY(-2px);
         }
 
-        .btn-sm {
-            padding: 6px 12px;
-            font-size: 0.85rem;
-        }
-
         .section {
             padding: 20px 0 40px;
             min-height: calc(100vh - 70px);
@@ -279,10 +275,6 @@
             outline: none;
             border-color: var(--primary);
             box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.2);
-        }
-
-        .search-box .btn {
-            padding: 14px 20px;
         }
 
         .games-grid {
@@ -380,6 +372,7 @@
             display: flex;
             gap: 10px;
             flex-wrap: wrap;
+            margin-top: 10px;
         }
 
         .copy-script-btn {
@@ -390,7 +383,8 @@
             display: flex;
             align-items: center;
             gap: 15px;
-            margin: 15px 0 5px;
+            margin: 10px 0;
+            flex-wrap: wrap;
         }
 
         .rating-buttons {
@@ -402,13 +396,14 @@
             display: flex;
             align-items: center;
             gap: 5px;
-            padding: 8px 16px;
+            padding: 6px 12px;
             border-radius: 30px;
             background: rgba(255, 255, 255, 0.1);
             border: 1px solid rgba(255, 255, 255, 0.1);
             color: white;
             cursor: pointer;
             transition: var(--transition);
+            font-size: 0.9rem;
         }
 
         .rating-btn:hover {
@@ -437,21 +432,23 @@
 
         .rating-count {
             font-weight: 600;
-            margin-left: 5px;
+            margin-left: 3px;
         }
 
         .rating-stats {
             display: flex;
             gap: 5px;
             align-items: center;
+            flex: 1;
         }
 
         .rating-bar {
-            width: 100px;
+            flex: 1;
             height: 6px;
             background: rgba(255, 255, 255, 0.1);
             border-radius: 3px;
             overflow: hidden;
+            max-width: 200px;
         }
 
         .rating-bar-fill {
@@ -470,7 +467,6 @@
             padding: 15px;
             margin-bottom: 12px;
             border-left: 3px solid var(--accent);
-            position: relative;
         }
 
         .comment-header {
@@ -486,11 +482,6 @@
         .comment-name {
             font-weight: 600;
             color: var(--success);
-        }
-
-        .comment-text {
-            color: var(--light);
-            font-size: 0.95rem;
         }
 
         .add-comment {
@@ -510,7 +501,6 @@
             background: rgba(0, 0, 0, 0.2);
             color: white;
             font-size: 0.95rem;
-            transition: var(--transition);
         }
 
         .add-comment textarea {
@@ -621,7 +611,7 @@
             font-size: 0.9rem;
         }
 
-        /* Мобильные улучшения */
+        /* Мобильные стили */
         @media (max-width: 768px) {
             body {
                 padding-top: 60px;
@@ -649,7 +639,7 @@
             }
 
             .tg-link span {
-                display: none; /* Прячем текст "Telegram" на мобилках, оставляем только иконку */
+                display: none;
             }
 
             .user-name {
@@ -666,13 +656,8 @@
                 font-size: 0.9rem;
             }
 
-            .section {
-                padding: 15px 0 30px;
-            }
-
             .section-title {
                 font-size: 1.6rem;
-                margin-bottom: 20px;
             }
 
             .search-box {
@@ -686,31 +671,6 @@
             .games-grid {
                 grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
                 gap: 12px;
-            }
-
-            .game-card {
-                padding: 15px;
-            }
-
-            .game-card i {
-                font-size: 2rem;
-            }
-
-            .game-card h3 {
-                font-size: 1rem;
-            }
-
-            .game-card p {
-                font-size: 0.8rem;
-            }
-
-            .script-meta {
-                flex-direction: column;
-                gap: 5px;
-            }
-
-            .script-actions {
-                flex-direction: column;
             }
 
             .rating-container {
@@ -727,7 +687,6 @@
             .rating-btn {
                 flex: 1;
                 justify-content: center;
-                padding: 8px 10px;
             }
 
             .rating-stats {
@@ -735,18 +694,13 @@
             }
 
             .rating-bar {
-                flex: 1;
-            }
-
-            .modal-content {
-                padding: 20px;
+                max-width: none;
             }
         }
 
-        /* Очень маленькие экраны */
         @media (max-width: 480px) {
             .logo span {
-                display: none; /* Прячем текст лого на очень маленьких */
+                display: none;
             }
 
             .user-name span {
@@ -774,12 +728,12 @@
                     </button>
                     <div id="userInfo" style="display: none;">
                         <div class="user-menu">
-                            <div class="user-name">
+                            <div class="user-name" onclick="toggleUserMenu(event)">
                                 <i class="fas fa-user"></i>
                                 <span id="displayName">Загрузка...</span>
                                 <i class="fas fa-chevron-down"></i>
                             </div>
-                            <div class="user-dropdown">
+                            <div class="user-dropdown" id="userDropdown">
                                 <div class="dropdown-item" onclick="showProfileModal()">
                                     <i class="fas fa-user-edit"></i> Профиль
                                 </div>
@@ -979,7 +933,6 @@
                 if (userDoc.exists) {
                     return userDoc.data();
                 } else {
-                    // Создаем нового пользователя
                     const newUserData = {
                         uid: user.uid,
                         githubLogin: user.displayName || user.email.split('@')[0],
@@ -995,6 +948,22 @@
                 return null;
             }
         }
+
+        // Тоггл меню
+        window.toggleUserMenu = (event) => {
+            event.stopPropagation();
+            const dropdown = document.getElementById('userDropdown');
+            dropdown.classList.toggle('show');
+        };
+
+        // Закрыть меню при клике вне
+        document.addEventListener('click', (event) => {
+            const dropdown = document.getElementById('userDropdown');
+            const userName = document.querySelector('.user-name');
+            if (dropdown && userName && !userName.contains(event.target)) {
+                dropdown.classList.remove('show');
+            }
+        });
 
         // Auth
         window.loginWithGitHub = () => {
@@ -1019,6 +988,7 @@
         window.showChangeNameModal = () => {
             document.getElementById('newNickname').value = '';
             document.getElementById('changeNameModal').classList.add('active');
+            document.getElementById('userDropdown').classList.remove('show');
         };
 
         // Сменить никнейм
@@ -1061,19 +1031,16 @@
             document.getElementById('profileEmail').textContent = currentUser.email || '—';
             
             try {
-                // Считаем количество скриптов пользователя
                 const scriptsSnapshot = await db.collection('scripts')
                     .where('authorUid', '==', currentUser.uid)
                     .get();
                 document.getElementById('userScriptsCount').textContent = scriptsSnapshot.size;
                 
-                // Считаем количество комментариев
                 const commentsSnapshot = await db.collection('comments')
                     .where('authorUid', '==', currentUser.uid)
                     .get();
                 document.getElementById('userCommentsCount').textContent = commentsSnapshot.size;
                 
-                // Считаем полученные лайки
                 let totalLikes = 0;
                 for (const doc of scriptsSnapshot.docs) {
                     const scriptData = doc.data();
@@ -1086,6 +1053,7 @@
             }
             
             document.getElementById('profileModal').classList.add('active');
+            document.getElementById('userDropdown').classList.remove('show');
         };
 
         auth.onAuthStateChanged(async (user) => {
@@ -1155,9 +1123,7 @@
                     const ratingDoc = await transaction.get(ratingRef);
                     const scriptDoc = await transaction.get(scriptRef);
 
-                    if (!scriptDoc.exists) {
-                        throw new Error('Скрипт не найден');
-                    }
+                    if (!scriptDoc.exists) return;
 
                     const scriptData = scriptDoc.data();
                     let newLikes = scriptData.likes || 0;
@@ -1166,12 +1132,10 @@
                     if (ratingDoc.exists) {
                         const existingRating = ratingDoc.data().type;
                         if (existingRating === type) {
-                            // Убираем оценку
                             if (type === 'like') newLikes--;
                             else newDislikes--;
                             transaction.delete(ratingRef);
                         } else {
-                            // Меняем оценку
                             if (type === 'like') {
                                 newLikes++;
                                 newDislikes--;
@@ -1179,313 +1143,4 @@
                                 newDislikes++;
                                 newLikes--;
                             }
-                            transaction.update(ratingRef, { type: type });
-                        }
-                    } else {
-                        // Новая оценка
-                        if (type === 'like') newLikes++;
-                        else newDislikes++;
-                        transaction.set(ratingRef, {
-                            scriptId: scriptId,
-                            userId: currentUser.uid,
-                            type: type,
-                            createdAt: firebase.firestore.FieldValue.serverTimestamp()
-                        });
-                    }
-
-                    transaction.update(scriptRef, {
-                        likes: newLikes,
-                        dislikes: newDislikes
-                    });
-                });
-
-                // Обновляем отображение
-                showGame(currentGameId);
-            } catch (error) {
-                console.error('Error rating script:', error);
-                alert('Ошибка при оценке');
-            }
-        };
-
-        // Show game
-        window.showGame = async (gameId) => {
-            console.log('Opening game:', gameId);
-            currentGameId = gameId;
-
-            try {
-                const gameDoc = await db.collection('games').doc(gameId).get();
-                if (!gameDoc.exists) {
-                    alert('Игра не найдена');
-                    return;
-                }
-
-                document.getElementById('gameTitle').textContent = gameDoc.data().name;
-
-                // Load scripts
-                const scriptsSnapshot = await db.collection('scripts')
-                    .where('gameId', '==', gameId)
-                    .orderBy('createdAt', 'desc')
-                    .get();
-                    
-                const scriptsContainer = document.getElementById('scriptsList');
-
-                if (scriptsSnapshot.empty) {
-                    scriptsContainer.innerHTML = '<p style="text-align: center;">Скриптов пока нет. Добавьте свой!</p>';
-                } else {
-                    let html = '';
-                    
-                    for (const doc of scriptsSnapshot.docs) {
-                        const script = doc.data();
-                        const scriptId = doc.id;
-                        const content = escapeHtml(script.content);
-                        
-                        // Получаем имя автора
-                        let authorName = 'Аноним';
-                        if (script.author) {
-                            authorName = script.author;
-                        }
-
-                        // Проверяем, ставил ли текущий пользователь оценку
-                        let userRating = null;
-                        if (currentUser) {
-                            const ratingDoc = await db.collection('ratings').doc(`${scriptId}_${currentUser.uid}`).get();
-                            if (ratingDoc.exists) {
-                                userRating = ratingDoc.data().type;
-                            }
-                        }
-
-                        const likes = script.likes || 0;
-                        const dislikes = script.dislikes || 0;
-                        const totalVotes = likes + dislikes;
-                        const likePercentage = totalVotes > 0 ? (likes / totalVotes) * 100 : 0;
-
-                        html += `
-                            <div class="script-item" data-id="${scriptId}">
-                                <div class="script-meta">
-                                    <span class="script-author">
-                                        <i class="fas fa-user"></i> ${escapeHtml(authorName)}
-                                    </span>
-                                    <span class="script-date">
-                                        ${script.createdAt ? new Date(script.createdAt.toDate()).toLocaleString() : 'недавно'}
-                                    </span>
-                                </div>
-                                <pre class="script-code">${content}</pre>
-                                <div class="rating-container">
-                                    <div class="rating-buttons">
-                                        <button class="rating-btn like ${userRating === 'like' ? 'active-like' : ''}" onclick="rateScript('${scriptId}', 'like')">
-                                            <i class="fas fa-thumbs-up"></i>
-                                            <span class="rating-count">${likes}</span>
-                                        </button>
-                                        <button class="rating-btn dislike ${userRating === 'dislike' ? 'active-dislike' : ''}" onclick="rateScript('${scriptId}', 'dislike')">
-                                            <i class="fas fa-thumbs-down"></i>
-                                            <span class="rating-count">${dislikes}</span>
-                                        </button>
-                                    </div>
-                                    <div class="rating-stats">
-                                        <div class="rating-bar">
-                                            <div class="rating-bar-fill" style="width: ${likePercentage}%"></div>
-                                        </div>
-                                        <span>${Math.round(likePercentage)}%</span>
-                                    </div>
-                                </div>
-                                <button class="btn btn-primary copy-script-btn" onclick="copyScript('${content.replace(/'/g, "\\'")}')">
-                                    <i class="fas fa-copy"></i> Копировать
-                                </button>
-                            </div>
-                        `;
-                    }
-                    scriptsContainer.innerHTML = html;
-                }
-
-                // Load comments
-                const commentsSnapshot = await db.collection('comments')
-                    .where('gameId', '==', gameId)
-                    .orderBy('createdAt', 'desc')
-                    .get();
-                    
-                const commentsContainer = document.getElementById('commentsList');
-
-                if (commentsSnapshot.empty) {
-                    commentsContainer.innerHTML = '<p>Комментариев нет</p>';
-                } else {
-                    let html = '';
-                    commentsSnapshot.forEach(doc => {
-                        const comment = doc.data();
-                        html += `
-                            <div class="comment">
-                                <div class="comment-header">
-                                    <span class="comment-name">${escapeHtml(comment.name || 'Аноним')}</span>
-                                    <span>${comment.createdAt ? new Date(comment.createdAt.toDate()).toLocaleString() : 'недавно'}</span>
-                                </div>
-                                <div class="comment-text">${escapeHtml(comment.text)}</div>
-                            </div>
-                        `;
-                    });
-                    commentsContainer.innerHTML = html;
-                }
-
-                // Switch section
-                document.getElementById('home-section').classList.remove('active');
-                document.getElementById('game-section').classList.add('active');
-
-            } catch (error) {
-                console.error('Error:', error);
-                alert('Ошибка: ' + error.message);
-            }
-        };
-
-        window.showHome = () => {
-            document.getElementById('home-section').classList.add('active');
-            document.getElementById('game-section').classList.remove('active');
-            currentGameId = null;
-        };
-
-        // Add script
-        window.showAddScriptModal = () => {
-            if (!currentUser) {
-                alert('Нужно войти через GitHub');
-                return;
-            }
-            document.getElementById('addScriptModal').classList.add('active');
-        };
-
-        window.closeModal = (id) => {
-            document.getElementById(id).classList.remove('active');
-        };
-
-        window.addScript = async () => {
-            if (!currentUser) return;
-
-            const gameName = document.getElementById('newGameName').value.trim();
-            const gameDesc = document.getElementById('newGameDesc').value.trim();
-            const scriptContent = document.getElementById('newScriptContent').value.trim();
-
-            if (!gameName || !scriptContent) {
-                alert('Заполните название игры и скрипт');
-                return;
-            }
-
-            if (containsForbidden(gameName) || containsForbidden(scriptContent)) {
-                alert('Обнаружены запрещённые слова');
-                return;
-            }
-
-            try {
-                // Find or create game
-                let gameId;
-                const gamesSnapshot = await db.collection('games').where('name', '==', gameName).get();
-
-                if (gamesSnapshot.empty) {
-                    const newGame = await db.collection('games').add({
-                        name: gameName,
-                        desc: gameDesc || 'Без описания',
-                        createdAt: firebase.firestore.FieldValue.serverTimestamp()
-                    });
-                    gameId = newGame.id;
-                } else {
-                    gameId = gamesSnapshot.docs[0].id;
-                }
-
-                // Получаем имя автора
-                const authorName = getDisplayName(currentUser, currentUserData);
-
-                // Add script
-                await db.collection('scripts').add({
-                    gameId: gameId,
-                    content: scriptContent,
-                    author: authorName,
-                    authorUid: currentUser.uid,
-                    likes: 0,
-                    dislikes: 0,
-                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
-                });
-
-                alert('✅ Скрипт добавлен!');
-                closeModal('addScriptModal');
-                
-                // Clear form
-                document.getElementById('newGameName').value = '';
-                document.getElementById('newGameDesc').value = '';
-                document.getElementById('newScriptContent').value = '';
-
-                // Reload games
-                loadGames();
-
-                // If we're on that game, show it
-                if (currentGameId === gameId) {
-                    showGame(gameId);
-                }
-
-            } catch (error) {
-                console.error('Error:', error);
-                alert('Ошибка: ' + error.message);
-            }
-        };
-
-        // Add comment
-        window.addComment = async () => {
-            if (!currentGameId) return;
-
-            const name = document.getElementById('commentName').value.trim() || 'Аноним';
-            const text = document.getElementById('commentText').value.trim();
-
-            if (!text) {
-                alert('Введите комментарий');
-                return;
-            }
-
-            if (containsForbidden(name) || containsForbidden(text)) {
-                alert('Запрещённые слова');
-                return;
-            }
-
-            try {
-                await db.collection('comments').add({
-                    gameId: currentGameId,
-                    name: name,
-                    text: text,
-                    authorUid: currentUser ? currentUser.uid : null,
-                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
-                });
-
-                document.getElementById('commentName').value = '';
-                document.getElementById('commentText').value = '';
-
-                // Reload comments
-                const commentsSnapshot = await db.collection('comments')
-                    .where('gameId', '==', currentGameId)
-                    .orderBy('createdAt', 'desc')
-                    .get();
-                    
-                let html = '';
-                commentsSnapshot.forEach(doc => {
-                    const comment = doc.data();
-                    html += `
-                        <div class="comment">
-                            <div class="comment-header">
-                                <span class="comment-name">${escapeHtml(comment.name || 'Аноним')}</span>
-                                <span>${comment.createdAt ? new Date(comment.createdAt.toDate()).toLocaleString() : 'недавно'}</span>
-                            </div>
-                            <div class="comment-text">${escapeHtml(comment.text)}</div>
-                        </div>
-                    `;
-                });
-                document.getElementById('commentsList').innerHTML = html;
-
-            } catch (error) {
-                console.error('Error:', error);
-                alert('Ошибка: ' + error.message);
-            }
-        };
-
-        window.copyScript = (text) => {
-            navigator.clipboard.writeText(text).then(() => {
-                alert('✅ Скопировано!');
-            });
-        };
-
-        // Initialize
-        loadGames();
-    </script>
-</body>
-</html>
+                            transaction.update

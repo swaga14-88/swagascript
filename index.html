@@ -363,6 +363,11 @@
             display: flex;
             align-items: center;
             gap: 5px;
+            cursor: pointer;
+        }
+
+        .script-author:hover {
+            text-decoration: underline;
         }
 
         .script-date {
@@ -559,6 +564,11 @@
             display: flex;
             align-items: center;
             gap: 5px;
+            cursor: pointer;
+        }
+
+        .comment-name:hover {
+            text-decoration: underline;
         }
 
         .comment-actions {
@@ -606,6 +616,143 @@
         .add-comment textarea {
             min-height: 80px;
             resize: vertical;
+        }
+
+        /* Чаты */
+        .chat-section {
+            display: flex;
+            height: calc(100vh - 140px);
+            gap: 20px;
+        }
+
+        .chat-sidebar {
+            width: 300px;
+            background: var(--card-bg);
+            border-radius: var(--border-radius);
+            padding: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            overflow-y: auto;
+        }
+
+        .chat-main {
+            flex: 1;
+            background: var(--card-bg);
+            border-radius: var(--border-radius);
+            padding: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chat-search {
+            margin-bottom: 15px;
+        }
+
+        .chat-search input {
+            width: 100%;
+            padding: 10px;
+            border-radius: var(--border-radius);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            background: rgba(0, 0, 0, 0.2);
+            color: white;
+        }
+
+        .chat-user-item {
+            padding: 10px;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            transition: var(--transition);
+            margin-bottom: 5px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .chat-user-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .chat-user-item.active {
+            background: var(--primary);
+        }
+
+        .chat-user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--accent);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+        }
+
+        .chat-user-info {
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .chat-user-name {
+            font-weight: 600;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .chat-last-message {
+            font-size: 0.8rem;
+            color: var(--gray);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .chat-message {
+            max-width: 70%;
+            padding: 8px 12px;
+            border-radius: 18px;
+            word-wrap: break-word;
+        }
+
+        .chat-message.own {
+            align-self: flex-end;
+            background: var(--primary);
+            color: white;
+        }
+
+        .chat-message.other {
+            align-self: flex-start;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .chat-message-time {
+            font-size: 0.7rem;
+            color: var(--gray);
+            margin-top: 4px;
+        }
+
+        .chat-input-area {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .chat-input-area input {
+            flex: 1;
+            padding: 12px;
+            border-radius: var(--border-radius);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            background: rgba(0, 0, 0, 0.2);
+            color: white;
         }
 
         .modal {
@@ -702,7 +849,7 @@
             color: var(--success);
         }
 
-        footer {
+        .footer {
             background: rgba(0, 0, 0, 0.3);
             padding: 20px 0;
             text-align: center;
@@ -805,6 +952,16 @@
                 width: 100%;
                 justify-content: space-between;
             }
+
+            .chat-section {
+                flex-direction: column;
+                height: auto;
+            }
+
+            .chat-sidebar {
+                width: 100%;
+                max-height: 300px;
+            }
         }
 
         @media (max-width: 480px) {
@@ -848,6 +1005,9 @@
                                 </div>
                                 <div class="dropdown-item" onclick="showChangeNameModal()">
                                     <i class="fas fa-pen"></i> Сменить ник
+                                </div>
+                                <div class="dropdown-item" onclick="showChat()">
+                                    <i class="fas fa-comment"></i> Чаты
                                 </div>
                                 <div class="dropdown-item" onclick="logout()">
                                     <i class="fas fa-sign-out-alt"></i> Выйти
@@ -904,6 +1064,39 @@
                 <button class="btn btn-success" onclick="addComment()">
                     <i class="fas fa-paper-plane"></i> Отправить
                 </button>
+                <div id="commentCooldownMsg" style="color: var(--warning); font-size: 0.9rem; margin-top: 5px;"></div>
+            </div>
+        </div>
+    </section>
+
+    <section id="chat-section" class="section">
+        <div class="container">
+            <button class="btn btn-outline back-btn" onclick="showHome()">
+                <i class="fas fa-arrow-left"></i> На главную
+            </button>
+            <h2 class="section-title">Личные <span>сообщения</span></h2>
+            
+            <div class="chat-section">
+                <div class="chat-sidebar">
+                    <div class="chat-search">
+                        <input type="text" id="userSearch" placeholder="🔍 Поиск пользователя..." onkeyup="searchUsers()">
+                    </div>
+                    <div id="usersList">
+                        <!-- Список пользователей -->
+                    </div>
+                </div>
+                <div class="chat-main">
+                    <div id="chatMessages" class="chat-messages">
+                        <!-- Сообщения -->
+                    </div>
+                    <div class="chat-input-area" id="chatInputArea" style="display: none;">
+                        <input type="text" id="messageInput" placeholder="Введите сообщение..." onkeypress="handleMessageKeyPress(event)">
+                        <button class="btn btn-primary" onclick="sendMessage()">Отправить</button>
+                    </div>
+                    <div id="noChatSelected" style="text-align: center; color: var(--gray); padding: 20px;">
+                        Выберите пользователя для начала диалога
+                    </div>
+                </div>
             </div>
         </div>
     </section>
@@ -924,6 +1117,7 @@
                 <label>Скрипт (Lua)</label>
                 <textarea id="newScriptContent" placeholder="loadstring(...)"></textarea>
             </div>
+            <div id="scriptCooldownMsg" style="color: var(--warning); margin-bottom: 10px;"></div>
             <button class="btn btn-success" onclick="addScript()" style="width: 100%;">
                 <i class="fas fa-upload"></i> Опубликовать
             </button>
@@ -938,6 +1132,7 @@
                 <label>Новый никнейм</label>
                 <input type="text" id="newNickname" placeholder="Введите новый ник">
             </div>
+            <div id="nicknameCooldownMsg" style="color: var(--warning); margin-bottom: 10px;"></div>
             <button class="btn btn-success" onclick="changeNickname()" style="width: 100%;">
                 <i class="fas fa-save"></i> Сохранить
             </button>
@@ -1005,6 +1200,7 @@
         const db = firebase.firestore();
         const provider = new firebase.auth.GithubAuthProvider();
 
+        // Глобальные переменные
         let currentUser = null;
         let currentUserData = null;
         let currentGameId = null;
@@ -1013,6 +1209,13 @@
         let commentsExpanded = false;
         let deleteTarget = null; // { type: 'script'|'comment'|'game', id: '...' }
         const ADMIN_USERNAME = 'talisov';
+        const COOLDOWN_TIME = 5 * 60 * 1000; // 5 минут в миллисекундах
+
+        // Для чата
+        let selectedUserId = null;
+        let messagesListener = null;
+        let allUsers = [];
+        let conversations = [];
 
         const forbiddenWords = ['реклама', 'пиар', 'промо', 'сука', 'бля', 'хуй', 'пизда', 'fuck', 'shit', 'spam'];
 
@@ -1096,6 +1299,45 @@
             }
         });
 
+        // Проверка кулдауна
+        async function checkCooldown(actionType) {
+            if (!currentUser) return { allowed: false, message: 'Необходимо войти' };
+            
+            const cooldownRef = db.collection('cooldowns').doc(`${currentUser.uid}_${actionType}`);
+            const doc = await cooldownRef.get();
+            
+            if (doc.exists) {
+                const lastTime = doc.data().timestamp.toDate();
+                const now = new Date();
+                const diff = now - lastTime;
+                if (diff < COOLDOWN_TIME) {
+                    const remaining = Math.ceil((COOLDOWN_TIME - diff) / 1000 / 60);
+                    return { 
+                        allowed: false, 
+                        message: `Подождите ещё ${remaining} мин. перед следующим ${actionType === 'game' ? 'созданием игры' : actionType === 'script' ? 'добавлением скрипта' : 'комментарием'}`
+                    };
+                }
+            }
+            return { allowed: true };
+        }
+
+        // Обновление кулдауна
+        async function updateCooldown(actionType) {
+            if (!currentUser) return;
+            const cooldownRef = db.collection('cooldowns').doc(`${currentUser.uid}_${actionType}`);
+            await cooldownRef.set({
+                timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            });
+        }
+
+        // Проверка уникальности никнейма
+        async function isNicknameUnique(nickname, excludeUid = null) {
+            const snapshot = await db.collection('users').where('nickname', '==', nickname).get();
+            if (snapshot.empty) return true;
+            if (excludeUid && snapshot.size === 1 && snapshot.docs[0].id === excludeUid) return true;
+            return false;
+        }
+
         window.loginWithGitHub = () => {
             auth.signInWithPopup(provider)
                 .then(async (result) => {
@@ -1107,6 +1349,8 @@
         };
 
         window.logout = () => {
+            // Отписываемся от сообщений
+            if (messagesListener) messagesListener();
             auth.signOut().then(() => {
                 currentUser = null;
                 currentUserData = null;
@@ -1116,6 +1360,7 @@
 
         window.showChangeNameModal = () => {
             document.getElementById('newNickname').value = '';
+            document.getElementById('nicknameCooldownMsg').innerHTML = '';
             document.getElementById('changeNameModal').classList.add('active');
             document.getElementById('userDropdown').classList.remove('show');
         };
@@ -1132,6 +1377,13 @@
             
             if (containsForbidden(newNickname)) {
                 alert('Никнейм содержит запрещённые слова');
+                return;
+            }
+
+            // Проверка уникальности
+            const isUnique = await isNicknameUnique(newNickname, currentUser.uid);
+            if (!isUnique) {
+                alert('Этот никнейм уже занят другим пользователем');
                 return;
             }
             
@@ -1194,6 +1446,7 @@
             updateAuthUI();
         });
 
+        // Загрузка игр
         async function loadGames() {
             try {
                 const snapshot = await db.collection('games').get();
@@ -1285,14 +1538,11 @@
                 } else if (deleteTarget.type === 'comment') {
                     await db.collection('comments').doc(deleteTarget.id).delete();
                 } else if (deleteTarget.type === 'game') {
-                    // Удаляем игру и всё связанное
                     const gameId = deleteTarget.id;
                     
-                    // Получаем все скрипты этой игры
                     const scriptsSnapshot = await db.collection('scripts').where('gameId', '==', gameId).get();
                     const scriptIds = scriptsSnapshot.docs.map(doc => doc.id);
                     
-                    // Удаляем все комментарии этой игры
                     const commentsSnapshot = await db.collection('comments').where('gameId', '==', gameId).get();
                     const batch = db.batch();
                     
@@ -1300,12 +1550,10 @@
                         batch.delete(doc.ref);
                     });
                     
-                    // Удаляем все скрипты
                     scriptsSnapshot.docs.forEach(doc => {
                         batch.delete(doc.ref);
                     });
                     
-                    // Удаляем все оценки, связанные с этими скриптами
                     for (const scriptId of scriptIds) {
                         const ratingsSnapshot = await db.collection('ratings').where('scriptId', '==', scriptId).get();
                         ratingsSnapshot.docs.forEach(doc => {
@@ -1313,12 +1561,10 @@
                         });
                     }
                     
-                    // Удаляем саму игру
                     batch.delete(db.collection('games').doc(gameId));
                     
                     await batch.commit();
                     
-                    // Возвращаемся на главную
                     showHome();
                 }
                 
@@ -1430,7 +1676,7 @@
                 html += `
                     <div class="comment" id="comment-${comment.id}">
                         <div class="comment-header">
-                            <span class="comment-name">
+                            <span class="comment-name" onclick="openChatWithUser('${comment.authorUid || ''}', '${escapeHtml(comment.name)}')">
                                 ${escapeHtml(comment.name || 'Аноним')}
                                 ${isAdminUser ? '<span class="admin-badge">ADMIN</span>' : ''}
                             </span>
@@ -1458,7 +1704,6 @@
         }
 
         window.showGame = async (gameId) => {
-            console.log('Opening game:', gameId);
             currentGameId = gameId;
 
             try {
@@ -1525,7 +1770,7 @@
                             <div class="script-item">
                                 <div class="script-meta">
                                     <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
-                                        <span class="script-author">
+                                        <span class="script-author" onclick="openChatWithUser('${script.authorUid || ''}', '${escapeHtml(authorName)}')">
                                             <i class="fas fa-user"></i> ${escapeHtml(authorName)}
                                             ${isAdmin() ? '<span class="admin-badge">ADMIN</span>' : ''}
                                         </span>
@@ -1597,6 +1842,7 @@
 
                 document.getElementById('home-section').classList.remove('active');
                 document.getElementById('game-section').classList.add('active');
+                document.getElementById('chat-section').classList.remove('active');
 
             } catch (error) {
                 console.error('Error:', error);
@@ -1607,8 +1853,17 @@
         window.showHome = () => {
             document.getElementById('home-section').classList.add('active');
             document.getElementById('game-section').classList.remove('active');
+            document.getElementById('chat-section').classList.remove('active');
             currentGameId = null;
             loadGames();
+        };
+
+        window.showChat = () => {
+            document.getElementById('home-section').classList.remove('active');
+            document.getElementById('game-section').classList.remove('active');
+            document.getElementById('chat-section').classList.add('active');
+            document.getElementById('userDropdown').classList.remove('show');
+            loadUsers();
         };
 
         window.showAddScriptModal = () => {
@@ -1617,6 +1872,7 @@
                 return;
             }
             document.getElementById('addScriptModal').classList.add('active');
+            document.getElementById('scriptCooldownMsg').innerHTML = '';
         };
 
         window.closeModal = (id) => {
@@ -1625,6 +1881,13 @@
 
         window.addScript = async () => {
             if (!currentUser) return;
+
+            // Проверка кулдауна
+            const cooldown = await checkCooldown('script');
+            if (!cooldown.allowed) {
+                document.getElementById('scriptCooldownMsg').innerHTML = cooldown.message;
+                return;
+            }
 
             const gameName = document.getElementById('newGameName').value.trim();
             const gameDesc = document.getElementById('newGameDesc').value.trim();
@@ -1645,12 +1908,20 @@
                 const gamesSnapshot = await db.collection('games').where('name', '==', gameName).get();
 
                 if (gamesSnapshot.empty) {
+                    // Создание новой игры тоже требует кулдаун
+                    const gameCooldown = await checkCooldown('game');
+                    if (!gameCooldown.allowed) {
+                        document.getElementById('scriptCooldownMsg').innerHTML = gameCooldown.message;
+                        return;
+                    }
+                    
                     const newGame = await db.collection('games').add({
                         name: gameName,
                         desc: gameDesc || 'Без описания',
                         createdAt: firebase.firestore.FieldValue.serverTimestamp()
                     });
                     gameId = newGame.id;
+                    await updateCooldown('game');
                 } else {
                     gameId = gamesSnapshot.docs[0].id;
                 }
@@ -1667,6 +1938,8 @@
                     views: 0,
                     createdAt: firebase.firestore.FieldValue.serverTimestamp()
                 });
+
+                await updateCooldown('script');
 
                 alert('✅ Скрипт добавлен!');
                 closeModal('addScriptModal');
@@ -1690,6 +1963,13 @@
         window.addComment = async () => {
             if (!currentGameId) return;
 
+            // Проверка кулдауна
+            const cooldown = await checkCooldown('comment');
+            if (!cooldown.allowed) {
+                document.getElementById('commentCooldownMsg').innerHTML = cooldown.message;
+                return;
+            }
+
             const name = document.getElementById('commentName').value.trim() || 'Аноним';
             const text = document.getElementById('commentText').value.trim();
 
@@ -1712,8 +1992,11 @@
                     createdAt: firebase.firestore.FieldValue.serverTimestamp()
                 });
 
+                await updateCooldown('comment');
+
                 document.getElementById('commentName').value = '';
                 document.getElementById('commentText').value = '';
+                document.getElementById('commentCooldownMsg').innerHTML = '';
 
                 showGame(currentGameId);
 
@@ -1727,6 +2010,173 @@
             navigator.clipboard.writeText(text).then(() => {
                 alert('✅ Скопировано!');
             });
+        };
+
+        // ==================== ЧАТ ====================
+
+        async function loadUsers() {
+            if (!currentUser) return;
+            try {
+                const snapshot = await db.collection('users').get();
+                allUsers = snapshot.docs
+                    .map(doc => ({ uid: doc.id, ...doc.data() }))
+                    .filter(u => u.uid !== currentUser.uid); // исключаем себя
+                displayUsers(allUsers);
+            } catch (error) {
+                console.error('Error loading users:', error);
+            }
+        }
+
+        function displayUsers(users) {
+            const container = document.getElementById('usersList');
+            if (users.length === 0) {
+                container.innerHTML = '<p style="color: var(--gray);">Пользователей не найдено</p>';
+                return;
+            }
+            container.innerHTML = users.map(user => {
+                const displayName = user.nickname || user.githubLogin || user.email?.split('@')[0] || 'Пользователь';
+                return `
+                    <div class="chat-user-item ${selectedUserId === user.uid ? 'active' : ''}" onclick="selectUser('${user.uid}', '${escapeHtml(displayName)}')">
+                        <div class="chat-user-avatar">${displayName.charAt(0).toUpperCase()}</div>
+                        <div class="chat-user-info">
+                            <div class="chat-user-name">${escapeHtml(displayName)}</div>
+                            <div class="chat-last-message" id="lastMsg-${user.uid}"></div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            // Загрузить последние сообщения для отображения в списке
+            users.forEach(user => loadLastMessage(user.uid));
+        }
+
+        async function loadLastMessage(userId) {
+            if (!currentUser) return;
+            const conversationId = [currentUser.uid, userId].sort().join('_');
+            const msgSnapshot = await db.collection('messages')
+                .where('conversationId', '==', conversationId)
+                .orderBy('timestamp', 'desc')
+                .limit(1)
+                .get();
+            if (!msgSnapshot.empty) {
+                const msg = msgSnapshot.docs[0].data();
+                const lastMsgEl = document.getElementById(`lastMsg-${userId}`);
+                if (lastMsgEl) {
+                    lastMsgEl.textContent = msg.text.length > 30 ? msg.text.substring(0,30)+'…' : msg.text;
+                }
+            }
+        }
+
+        window.searchUsers = () => {
+            const query = document.getElementById('userSearch').value.toLowerCase();
+            const filtered = allUsers.filter(u => 
+                (u.nickname && u.nickname.toLowerCase().includes(query)) ||
+                (u.githubLogin && u.githubLogin.toLowerCase().includes(query)) ||
+                (u.email && u.email.toLowerCase().includes(query))
+            );
+            displayUsers(filtered);
+        };
+
+        window.selectUser = async (userId, displayName) => {
+            if (!currentUser) return;
+            
+            // Убираем выделение со всех
+            document.querySelectorAll('.chat-user-item').forEach(el => el.classList.remove('active'));
+            // Выделяем выбранного
+            const selectedEl = Array.from(document.querySelectorAll('.chat-user-item')).find(el => 
+                el.getAttribute('onclick')?.includes(`'${userId}'`)
+            );
+            if (selectedEl) selectedEl.classList.add('active');
+            
+            selectedUserId = userId;
+            
+            document.getElementById('noChatSelected').style.display = 'none';
+            document.getElementById('chatInputArea').style.display = 'flex';
+            
+            // Загружаем сообщения
+            await loadMessages(userId);
+        };
+
+        async function loadMessages(otherUserId) {
+            if (!currentUser || !otherUserId) return;
+            
+            const conversationId = [currentUser.uid, otherUserId].sort().join('_');
+            
+            // Отписываемся от предыдущего слушателя
+            if (messagesListener) messagesListener();
+            
+            const messagesRef = db.collection('messages')
+                .where('conversationId', '==', conversationId)
+                .orderBy('timestamp', 'asc');
+            
+            messagesListener = messagesRef.onSnapshot((snapshot) => {
+                const messages = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                displayMessages(messages, otherUserId);
+            });
+        }
+
+        function displayMessages(messages, otherUserId) {
+            const container = document.getElementById('chatMessages');
+            container.innerHTML = messages.map(msg => {
+                const isOwn = msg.senderId === currentUser.uid;
+                return `
+                    <div class="chat-message ${isOwn ? 'own' : 'other'}">
+                        ${escapeHtml(msg.text)}
+                        <div class="chat-message-time">${msg.timestamp ? new Date(msg.timestamp.toDate()).toLocaleTimeString() : ''}</div>
+                    </div>
+                `;
+            }).join('');
+            container.scrollTop = container.scrollHeight;
+        }
+
+        window.sendMessage = async () => {
+            if (!currentUser || !selectedUserId) return;
+            const input = document.getElementById('messageInput');
+            const text = input.value.trim();
+            if (!text) return;
+            
+            const conversationId = [currentUser.uid, selectedUserId].sort().join('_');
+            
+            try {
+                await db.collection('messages').add({
+                    conversationId: conversationId,
+                    senderId: currentUser.uid,
+                    receiverId: selectedUserId,
+                    text: text,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                    read: false
+                });
+                input.value = '';
+                // Обновим последнее сообщение в списке
+                loadLastMessage(selectedUserId);
+            } catch (error) {
+                console.error('Error sending message:', error);
+                alert('Ошибка при отправке');
+            }
+        };
+
+        window.handleMessageKeyPress = (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        };
+
+        window.openChatWithUser = (uid, name) => {
+            if (!currentUser) {
+                alert('Войдите, чтобы написать сообщение');
+                return;
+            }
+            if (!uid) {
+                alert('Пользователь анонимен, нельзя начать чат');
+                return;
+            }
+            // Переключаемся на чат и выбираем этого пользователя
+            showChat();
+            // Небольшая задержка для загрузки списка пользователей
+            setTimeout(() => {
+                selectUser(uid, name);
+            }, 500);
         };
 
         loadGames();

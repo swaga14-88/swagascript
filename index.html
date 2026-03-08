@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
-    <title>SWAGA SCRIPT — читы для Roblox</title>
+    <title>SWAGA SCRIPT — Форум скриптов</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
@@ -1195,7 +1195,7 @@
 
     <footer>
         <div class="container">
-            <p>© 2025 SWAGA SCRIPT — читы для Roblox</p>
+            <p>Благодарим все вышнего - за прекрасный форум</p>
         </div>
     </footer>
 
@@ -1228,7 +1228,7 @@
         let messagesListener = null;
         let allUsers = [];
 
-        const forbiddenWords = ['реклама', 'пиар', 'промо', 'сука', 'бля', 'хуй', 'пизда', 'fuck', 'shit', 'spam'];
+        const forbiddenWords = ['дискорд', 'discord', 'хуйня скрипт', 'сука', 'пенис', 'хуй', 'пизда', 'fuck', 'shit', 'spam', 'телеграм', 'telegram', 'порно',];
 
         function containsForbidden(text) {
             return forbiddenWords.some(word => text.toLowerCase().includes(word));
@@ -1401,7 +1401,7 @@
                 currentUserData.nickname = newNickname;
                 updateAuthUI();
                 closeModal('changeNameModal');
-                alert('✅ Никнейм успешно изменён!');
+                alert('Никнейм успешно изменён!');
             } catch (error) {
                 console.error('Error changing nickname:', error);
                 alert('Ошибка при смене ника');

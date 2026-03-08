@@ -263,20 +263,31 @@
             updateAuthUI();
         });
 
-        // Загрузка игр из Firestore
+        // Загрузка всех игр из Firestore
         async function loadGames() {
             const snapshot = await db.collection('games').orderBy('name').get();
-            return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            return snapshot.docs.map(doc => ({ 
+                id: doc.id, // ВАЖНО: используем document.id
+                ...doc.data() 
+            }));
         }
 
+        // Отображение игр на главной
         async function renderGames() {
+            console.log("🔄 Загрузка списка игр...");
             const games = await loadGames();
+            console.log("📊 Игр загружено:", games.length);
+            
             const container = document.getElementById('games-list');
             container.innerHTML = '';
+            
             games.forEach(game => {
                 const card = document.createElement('div');
                 card.className = 'game-card';
-                card.onclick = () => showGame(game.id);
+                card.onclick = () => {
+                    console.log("🖱️ Клик по игре:", game.name, "ID:", game.id);
+                    showGame(game.id);
+                };
                 card.innerHTML = `
                     <i class="fas fa-gamepad"></i>
                     <h3>${escapeHtml(game.name)}</h3>
@@ -286,16 +297,22 @@
             });
         }
 
+        // Фильтрация игр
         window.filterGames = async function() {
             const query = document.getElementById('search-input').value.toLowerCase();
             const games = await loadGames();
             const filtered = games.filter(g => g.name.toLowerCase().includes(query));
+            
             const container = document.getElementById('games-list');
             container.innerHTML = '';
+            
             filtered.forEach(game => {
                 const card = document.createElement('div');
                 card.className = 'game-card';
-                card.onclick = () => showGame(game.id);
+                card.onclick = () => {
+                    console.log("🖱️ Клик по игре:", game.name, "ID:", game.id);
+                    showGame(game.id);
+                };
                 card.innerHTML = `
                     <i class="fas fa-gamepad"></i>
                     <h3>${escapeHtml(game.name)}</h3>
@@ -305,6 +322,7 @@
             });
         };
 
+        // Показать главную страницу
         window.showHome = function() {
             document.getElementById('home-section').classList.add('active');
             document.getElementById('game-section').classList.remove('active');
@@ -312,39 +330,85 @@
             renderGames();
         };
 
+        // Показать страницу игры
         async function showGame(gameId) {
+            console.log("🟢 Открываем игру с ID:", gameId);
             currentGameId = gameId;
-            const gameDoc = await db.collection('games').doc(gameId).get();
-            const game = gameDoc.data();
-            document.getElementById('game-title').innerText = game.name;
+            
+            try {
+                // Получаем данные игры
+                const gameDoc = await db.collection('games').doc(gameId).get();
+                
+                if (!gameDoc.exists) {
+                    console.error("❌ Игра не найдена!");
+                    alert("Ошибка: игра не найдена в базе данных");
+                    return;
+                }
+                
+                const game = gameDoc.data();
+                console.log("✅ Игра загружена:", game.name);
+                document.getElementById('game-title').innerText = game.name;
 
-            const scriptsSnapshot = await db.collection('scripts').where('gameId', '==', gameId).orderBy('createdAt', 'desc').get();
-            const scripts = scriptsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            renderScripts(scripts);
+                // Загружаем скрипты для ЭТОЙ игры
+                console.log("🔍 Ищем скрипты с gameId =", gameId);
+                const scriptsSnapshot = await db.collection('scripts')
+                    .where('gameId', '==', gameId)
+                    .orderBy('createdAt', 'desc')
+                    .get();
+                
+                console.log("📊 Найдено скриптов:", scriptsSnapshot.size);
+                
+                const scripts = scriptsSnapshot.docs.map(doc => {
+                    const data = doc.data();
+                    return { id: doc.id, ...data };
+                });
+                
+                // Отрисовываем скрипты
+                renderScripts(scripts);
 
-            const commentsSnapshot = await db.collection('comments').where('gameId', '==', gameId).orderBy('createdAt', 'desc').get();
-            const comments = commentsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            renderComments(comments);
+                // Загружаем комментарии
+                const commentsSnapshot = await db.collection('comments')
+                    .where('gameId', '==', gameId)
+                    .orderBy('createdAt', 'desc')
+                    .get();
+                const comments = commentsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                renderComments(comments);
 
-            document.getElementById('home-section').classList.remove('active');
-            document.getElementById('game-section').classList.add('active');
+                // Переключаем секции
+                document.getElementById('home-section').classList.remove('active');
+                document.getElementById('game-section').classList.add('active');
+                
+                console.log("✅ Страница игры успешно открыта");
+                
+            } catch (error) {
+                console.error("❌ Ошибка при открытии игры:", error);
+                alert("Ошибка: " + error.message);
+            }
         }
 
+        // Отображение скриптов
         function renderScripts(scripts) {
             const container = document.getElementById('scripts-list');
-            if (!scripts.length) {
+            
+            if (!scripts || scripts.length === 0) {
                 container.innerHTML = '<p style="text-align: center; color: var(--gray);">Скриптов пока нет. Добавьте свой!</p>';
                 return;
             }
-            container.innerHTML = scripts.map(script => `
+            
+            container.innerHTML = scripts.map(script => {
+                // Безопасно экранируем содержимое для вставки в HTML
+                const scriptContent = escapeHtml(script.content);
+                const scriptContentForCopy = script.content.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+                
+                return `
                 <div class="script-item" data-id="${script.id}">
                     <div class="script-meta">
                         <span class="script-author"><i class="fas fa-user"></i> ${escapeHtml(script.author || 'Аноним')}</span>
-                        <span class="script-date">${new Date(script.createdAt?.toDate()).toLocaleString()}</span>
+                        <span class="script-date">${script.createdAt ? new Date(script.createdAt.toDate()).toLocaleString() : 'недавно'}</span>
                     </div>
-                    <pre class="script-code">${escapeHtml(script.content)}</pre>
+                    <pre class="script-code">${scriptContent}</pre>
                     <div class="script-actions">
-                        <button class="btn btn-primary copy-script-btn" onclick="copyScript('${escapeHtml(script.content)}')">
+                        <button class="btn btn-primary copy-script-btn" onclick="copyScript('${scriptContentForCopy}')">
                             <i class="fas fa-copy"></i> Копировать
                         </button>
                         <button class="btn btn-danger report-btn" onclick="reportScript('${script.id}')">
@@ -352,9 +416,10 @@
                         </button>
                     </div>
                 </div>
-            `).join('');
+            `}).join('');
         }
 
+        // Копирование скрипта
         window.copyScript = function(scriptText) {
             navigator.clipboard.writeText(scriptText).then(() => {
                 alert('✅ Скрипт скопирован!');
@@ -363,6 +428,7 @@
             });
         };
 
+        // Жалоба на скрипт
         window.reportScript = async function(scriptId) {
             if (!currentUser) {
                 alert('Чтобы пожаловаться, войдите через GitHub.');
@@ -382,6 +448,7 @@
             }
         };
 
+        // Жалоба на комментарий
         window.reportComment = async function(commentId) {
             if (!currentUser) {
                 alert('Чтобы пожаловаться, войдите через GitHub.');
@@ -401,6 +468,7 @@
             }
         };
 
+        // Показать модалку добавления скрипта (с главной)
         window.showAddScriptModalFromHome = function() {
             if (!currentUser) {
                 alert('Для добавления скрипта необходимо войти через GitHub.');
@@ -412,27 +480,35 @@
             document.getElementById('addScriptModal').classList.add('active');
         };
 
+        // Показать модалку добавления скрипта (со страницы игры)
         window.showAddScriptModalForCurrentGame = function() {
             if (!currentUser) {
                 alert('Для добавления скрипта необходимо войти через GitHub.');
                 return;
             }
+            
             if (currentGameId) {
+                // Если текущая игра известна, подставляем её название
                 db.collection('games').doc(currentGameId).get().then(doc => {
-                    document.getElementById('scriptGameName').value = doc.data().name;
+                    if (doc.exists) {
+                        document.getElementById('scriptGameName').value = doc.data().name;
+                    }
                 });
             } else {
                 document.getElementById('scriptGameName').value = '';
             }
+            
             document.getElementById('gameDesc').value = '';
             document.getElementById('scriptContent').value = '';
             document.getElementById('addScriptModal').classList.add('active');
         };
 
+        // Закрыть модалку
         window.closeModal = function(modalId) {
             document.getElementById(modalId).classList.remove('active');
         };
 
+        // Добавление скрипта
         window.addUserScript = async function() {
             if (!currentUser) return;
 
@@ -451,22 +527,28 @@
             }
 
             try {
+                // Ищем игру по названию
                 const gamesRef = db.collection('games');
                 const snapshot = await gamesRef.where('name', '==', gameName).get();
+                
                 let gameId;
                 if (snapshot.empty) {
+                    // Создаём новую игру
                     const newGame = await gamesRef.add({
                         name: gameName,
                         desc: gameDesc || 'Описание отсутствует',
                         createdAt: firebase.firestore.FieldValue.serverTimestamp()
                     });
                     gameId = newGame.id;
+                    console.log("🆕 Создана новая игра с ID:", gameId);
                 } else {
                     gameId = snapshot.docs[0].id;
+                    console.log("📌 Найдена существующая игра с ID:", gameId);
                 }
 
+                // Добавляем скрипт
                 await db.collection('scripts').add({
-                    gameId: gameId,
+                    gameId: gameId, // ВАЖНО: используем правильный ID игры
                     content: scriptContent,
                     author: currentUser.displayName || currentUser.email,
                     authorUid: currentUser.uid,
@@ -476,28 +558,31 @@
                 alert('✅ Скрипт успешно добавлен!');
                 closeModal('addScriptModal');
 
+                // Если мы на странице этой игры, обновим её
                 if (currentGameId === gameId) {
                     showGame(gameId);
                 } else {
                     showHome();
                 }
             } catch (e) {
-                console.error(e);
+                console.error('❌ Ошибка при добавлении:', e);
                 alert('Ошибка при сохранении. Попробуйте ещё раз.');
             }
         };
 
+        // Отображение комментариев
         function renderComments(comments) {
             const container = document.getElementById('comments-list');
-            if (!comments.length) {
+            if (!comments || comments.length === 0) {
                 container.innerHTML = '<p style="text-align: center; color: var(--gray);">Пока нет комментариев. Будьте первым!</p>';
                 return;
             }
+            
             container.innerHTML = comments.map(c => `
                 <div class="comment" data-id="${c.id}">
                     <div class="comment-header">
                         <span class="comment-name">${escapeHtml(c.name || 'Аноним')}</span>
-                        <span>${new Date(c.createdAt?.toDate()).toLocaleString()}</span>
+                        <span>${c.createdAt ? new Date(c.createdAt.toDate()).toLocaleString() : 'недавно'}</span>
                     </div>
                     <div class="comment-text">${escapeHtml(c.text)}</div>
                     <div class="comment-actions">
@@ -509,10 +594,16 @@
             `).join('');
         }
 
+        // Добавление комментария
         window.addComment = async function() {
-            if (!currentGameId) return;
+            if (!currentGameId) {
+                alert('Ошибка: игра не выбрана');
+                return;
+            }
+            
             const name = document.getElementById('comment-name').value.trim() || 'Аноним';
             const text = document.getElementById('comment-text').value.trim();
+            
             if (!text) {
                 alert('Введите комментарий');
                 return;
@@ -530,19 +621,49 @@
                     text: text,
                     createdAt: firebase.firestore.FieldValue.serverTimestamp()
                 });
+                
+                // Очищаем поля
                 document.getElementById('comment-name').value = '';
                 document.getElementById('comment-text').value = '';
-                const commentsSnapshot = await db.collection('comments').where('gameId', '==', currentGameId).orderBy('createdAt', 'desc').get();
+                
+                // Обновляем комментарии
+                const commentsSnapshot = await db.collection('comments')
+                    .where('gameId', '==', currentGameId)
+                    .orderBy('createdAt', 'desc')
+                    .get();
                 const comments = commentsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 renderComments(comments);
+                
             } catch (e) {
+                console.error('❌ Ошибка при добавлении комментария:', e);
                 alert('Ошибка при отправке комментария.');
             }
         };
 
-        // Инициализация
+        // Инициализация при загрузке страницы
         (async function init() {
+            console.log("🚀 Запуск SWAGA SCRIPT");
             await renderGames();
+            
+            // Для отладки: показываем все игры и скрипты в консоли
+            setTimeout(async () => {
+                console.log("=== 🔍 ОТЛАДОЧНАЯ ИНФОРМАЦИЯ ===");
+                
+                const games = await db.collection('games').get();
+                console.log("📌 Игры в базе:");
+                games.forEach(doc => {
+                    console.log(`   - ${doc.data().name} (ID: ${doc.id})`);
+                });
+                
+                const scripts = await db.collection('scripts').get();
+                console.log("📌 Скрипты в базе:");
+                scripts.forEach(doc => {
+                    const data = doc.data();
+                    console.log(`   - Для игры ID: ${data.gameId} | Автор: ${data.author}`);
+                });
+                
+                console.log("=== 🔍 КОНЕЦ ОТЛАДКИ ===");
+            }, 2000);
         })();
     </script>
 </body>
